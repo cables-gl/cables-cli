@@ -1,6 +1,6 @@
 # cablesCLI
 
-will export, download and extract a cablespatch from the commandline
+export, download and extract a cablespatch from the commandline
 
 usage: `node index.js -e PATCHID`
 
