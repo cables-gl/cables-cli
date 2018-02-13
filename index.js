@@ -66,7 +66,7 @@ function doExport()
 									return;
 								}
 						 		console.log('finished...');
-						 		fs.unlink(tempFile);
+						 		fs.unlinkSync(tempFile);
 							});
 					});
 				
