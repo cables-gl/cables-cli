@@ -1,6 +1,6 @@
 # cables-cli
 
-_Tool to export and download a [cables](https://cables.gl) patch from the command line_
+_Tool to export and download [cables](https://cables.gl) patches from the command line_
 
 ## Installation
 
@@ -14,7 +14,7 @@ To export and download a cables patch run:
 ```
 node index.js -e [CABLES PATCH ID]
 ```
-You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.
+You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
 
 ```
 https://cables.gl/ui/#/project/5a7daa8b285c9aca0982bba2
