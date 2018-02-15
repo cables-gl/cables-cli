@@ -75,7 +75,7 @@ function doExport(options, onFinished, onError)
 									finalDir = path.normalize(path.join(process.cwd(), options.destination)); // use custom directory
 								}
 							} else {
-								finalDir = path.join(__dirname, 'patch'); // use directory 'patch'
+								finalDir = path.join(process.cwd(), 'patch'); // use directory 'patch'
 							}
 						}
 
