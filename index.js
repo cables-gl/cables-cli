@@ -1,3 +1,6 @@
+#! /usr/bin/env node
+const path = require('path');
+const process = require('process');
 const commandLineArgs = require('command-line-args')
 const request = require('request');
 const fs = require('fs');
@@ -13,9 +16,18 @@ const cablesUrl='https://cables.gl';
 const cmdOptions = 
 	[
 		{ name: 'export', alias: 'e', type: String },
+		{ name: 'destination', alias: 'd', type: String },
 	];
 
 const options = commandLineArgs(cmdOptions)
+
+/**
+ * Returns true if run directly via node,
+ * returns false if required as module
+ */
+function isRunAsCli() {
+	return require.main === module;
+}
 
 
 var download = function(uri, filename, callback)
@@ -27,7 +39,7 @@ var download = function(uri, filename, callback)
 	});
 };
 
-function doExport()
+function doExport(options, onFinished, onError)
 {
 	if(options.export)
 	{
@@ -45,7 +57,7 @@ function doExport()
 			if (!error && response.statusCode == 200)
 			{
 				var info = JSON.parse(body);
-				var tempFile='./'+basename(info.path)+'.zip';
+				var tempFile=basename(info.path)+'.zip';
 
 				console.log('downloading...')
 
@@ -54,7 +66,19 @@ function doExport()
 					{
 						console.log('download finished... ')
 
-						var finalDir=__dirname+'/'+basename(info.path);
+						var finalDir = path.join(process.cwd(), basename(info.path));
+						if(options.destination !== undefined) { // flag "-d" is set
+							if(options.destination && options.destination.length > 0) { // folder name passed after flag
+								if(path.isAbsolute(options.destination)) {
+									finalDir = options.destination;
+								} else {
+									finalDir = path.normalize(path.join(process.cwd(), options.destination)); // use custom directory
+								}
+							} else {
+								finalDir = path.join(__dirname, 'patch'); // use directory 'patch'
+							}
+						}
+
 						console.log('extracting to '+finalDir);
 
 						extract(tempFile, {dir: finalDir}, 
@@ -63,9 +87,11 @@ function doExport()
 								if(err)
 								{
 									console.log(err)
+									if(onError) { onError(err); }
 									return;
 								}
-						 		console.log('finished...');
+								 console.log('finished...');
+								 if(onFinished) { onFinished(); }
 						 		fs.unlinkSync(tempFile);
 							});
 					});
@@ -73,8 +99,10 @@ function doExport()
 			}
 			else
 			{
-				console.error("invalid response code");
+				var errMessage = 'invalid response code';
+				console.error(errMessage);
 				console.log(body);
+				if(onError) { onError(errMessage); }
 			}
 		}
 
@@ -83,7 +111,9 @@ function doExport()
 	}
 	else
 	{
-		console.log("no command line parameters given");
+		var errMessage = 'no command line parameters given';
+		console.log(errMessage);
+		if(onError) { onError(errMessage); }
 	}	
 }
 
@@ -91,23 +121,47 @@ function doExport()
 
 var cfg = require('home-config').load(configFilename);
 
-if(!cfg.apikey)
-{
-	console.log("NO CONFIG FOUND!");
-	console.log("paste your apikey:");
-
-	prompt.get(['apikey'], function (err, result)
-	{
-		cfg.apikey = result.apikey;
-		cfg.save();
-		doExport();
-		console.log("api key saved in ~/"+configFilename);
-
-	});
-}
-else
-{
-	doExport();
+if(isRunAsCli()) {
+	if(!isApiKeyDefined()) {
+		console.log("NO CONFIG FOUND!");
+		console.log("paste your apikey:");
+	
+		prompt.get(['apikey'], function (err, result) {
+			cfg.apikey = result.apikey;
+			cfg.save();
+			doExport(options);
+			console.log("api key saved in ~/"+configFilename);
+	
+		});
+	} else {
+		doExport(options);
+	}
 }
 
+/**
+ * Checks if the api key was found in the config file
+ */
+function isApiKeyDefined() {
+	return cfg && cfg.apikey;
+}
 
+function doExportWithParams(options, onFinished, onError) {
+	if(!options || !options.patchId) {
+		var errMessage = 'no options set!';
+		if(onError) { onError(errMessage); }
+		return;
+	}
+	if(options.apiKey) {
+		cfg.apikey = options.apiKey;
+	}
+	if(!cfg.apikey) {
+		if(onError) { onError('API key needed!') };
+		return;
+	}
+	options.export = options.patchId; // bring it in the same format as the cli-arguments
+	doExport(options, onFinished, onError);
+}
+
+module.exports = {
+	export: doExportWithParams
+};

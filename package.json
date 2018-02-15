@@ -1,13 +1,25 @@
 {
-  "name": "cables",
-  "version": "1.0.0",
-  "description": "cables command line interface",
+  "name": "@cables/cables",
+  "version": "0.1.1",
+  "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "bin": {
+    "cables": "./index.js"
+  },
+  "author": "undev (https://undev.studio)",
+  "homepage": "https://github.com/pandrr/cables-cli",
+  "bugs": {
+    "url": "https://github.com/pandrr/cables-cli/issues"
+  },
+  "keywords": [
+    "visual-programming",
+    "cables",
+    "export"
+  ],
+  "license": "MIT",
   "dependencies": {
     "basename": "^0.1.2",
     "command-line-args": "^5.0.2",
@@ -16,5 +28,9 @@
     "home-config": "^0.1.0",
     "prompt": "^1.0.0",
     "request": "^2.83.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pandrr/cables-cli.git"
   }
 }
