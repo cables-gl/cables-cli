@@ -70,7 +70,6 @@ cables.export(options, onFinished, onError);
 Example:  
 
 ```javascript
-var path = require('path');
 var cables = require('@cables/cables');
 
 cables.export({
