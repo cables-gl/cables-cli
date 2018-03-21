@@ -17,6 +17,8 @@ const cmdOptions =
 	[
 		{ name: 'export', alias: 'e', type: String },
 		{ name: 'destination', alias: 'd', type: String },
+		{ name: 'no-index', alias: 'i', type: Boolean },
+		{ name: 'json-filename', alias: 'j', type: String },
 	];
 
 const options = commandLineArgs(cmdOptions)
@@ -43,9 +45,25 @@ function doExport(options, onFinished, onError)
 {
 	if(options.export)
 	{
+		var queryParams = '';
+
+		// check for no-index option, which omits the index file
+		if(options['no-index'] !== undefined) {
+			queryParams += 'removeIndexHtml=1&';
+		}
+
+		// check for json filename option to specify the json filename
+		var jsonFn = options['json-filename'];
+		if(jsonFn) {
+			jsonFn = stripExtension(jsonFn);
+			queryParams += 'jsonName=' + jsonFn + '&';
+		}
+
+		var url = cablesUrl + '/api/project/' + options.export + '/export?' + queryParams;
+
 		var reqOptions =
 		{
-			url: cablesUrl+'/api/project/'+options.export+'/export',
+			url: url,
 			headers:
 			{
 				'apikey': cfg.apikey
@@ -139,6 +157,21 @@ if(isRunAsCli()) {
 }
 
 /**
+ * Removes the file-extension from a file, e.g. 'foo.json' -> `foo`
+ * @param {string} filename - The filename to strip the extension from
+ * @returns {string|undefined} - The filename without extension or undefined if filename is undefined
+ */
+function stripExtension(filename) {
+		if(filename) {
+			var lastDotIndex = filename.lastIndexOf('.');
+			if(lastDotIndex > -1 && lastDotIndex < filename.length-1) {
+				return filename.substring(0, lastDotIndex);
+			}
+			return filename;
+		}
+}
+
+/**
  * Checks if the api key was found in the config file
  */
 function isApiKeyDefined() {
@@ -153,6 +186,12 @@ function doExportWithParams(options, onFinished, onError) {
 	}
 	if(options.apiKey) {
 		cfg.apikey = options.apiKey;
+	}
+	if(options.noIndex) {
+		options['no-index'] = options.noIndex;
+	}
+	if(options.jsonFilename) {
+		options['json-filename'] = options.jsonFilename;
 	}
 	if(!cfg.apikey) {
 		if(onError) { onError('API key needed!') };

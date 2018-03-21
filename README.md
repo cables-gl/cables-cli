@@ -46,12 +46,14 @@ Example:
 cables -e 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 ```
 
-Please note: Running the command will overwrite  everything in the `my-patch`-folder.
+**Please note:** Running the command will overwrite  everything in the `my-patch`-folder.
 
 ## Arguments
 
-- `-e [PATCH ID]`: Export patch
-- `-d [DESTINATION]`: Folder to download the patch to, can either be absolute or relative
+- `-e` / `--export` `[PATCH ID]`: Export patch
+- `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
+- `-i` /  `--no-index` : Removes the _index.html_ file when set
+- `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
 
 ## Use as a module
 
@@ -67,7 +69,7 @@ Export:
 cables.export(options, onFinished, onError);
 ```
 
-Example:  
+Simple Example:  
 
 ```javascript
 var cables = require('@cables/cables');
@@ -85,6 +87,29 @@ function onError(err) {
   console.log('There was an error exporting your patch :/');
 }
 ```
+
+Advanced Example:  
+
+```javascript
+var cables = require('@cables/cables');
+
+cables.export({
+  patchId: '5a4ea356429259dd579a0fea',
+  destination: 'patch',
+  noIndex: true,
+  jsonFilename: 'my-patch' /* patch will be stored as my-patch.json */
+}, onFinished, onError);
+
+function onFinished() {
+  console.log('Export finished!');
+}
+
+function onError(err) {
+  console.log('There was an error exporting your patch :/');
+}
+```
+
+
 
 ## Further Infos
 
