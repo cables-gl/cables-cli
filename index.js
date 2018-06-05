@@ -18,6 +18,7 @@ const cmdOptions =
 		{ name: 'export', alias: 'e', type: String },
 		{ name: 'destination', alias: 'd', type: String },
 		{ name: 'no-index', alias: 'i', type: Boolean },
+		{ name: 'no-extract', alias: 'x', type: Boolean },
 		{ name: 'json-filename', alias: 'j', type: String },
 	];
 
@@ -82,7 +83,7 @@ function doExport(options, onFinished, onError)
 				download(cablesUrl+info.path,tempFile,
 					function()
 					{
-						console.log('download finished... ')
+						console.log('download finished... ',tempFile);
 
 						var finalDir = path.join(process.cwd(), basename(info.path));
 						if(options.destination !== undefined) { // flag "-d" is set
@@ -97,21 +98,34 @@ function doExport(options, onFinished, onError)
 							}
 						}
 
-						console.log('extracting to '+finalDir);
 
-						extract(tempFile, {dir: finalDir}, 
-							function (err)
-							{
-								if(err)
+						if(!options['no-extract'])
+						{
+							console.log('extracting to '+finalDir);
+
+							extract(tempFile, {dir: finalDir}, 
+								function (err)
 								{
-									console.log(err)
-									if(onError) { onError(err); }
-									return;
-								}
-								 console.log('finished...');
-								 if(onFinished) { onFinished(); }
-						 		fs.unlinkSync(tempFile);
+									if(err)
+									{
+										console.log(err)
+										if(onError) { onError(err); }
+										return;
+									}
+									 console.log('finished...');
+									 if(onFinished) onFinished();
+									 fs.unlinkSync(tempFile);
+								});
+	
+						}
+						else
+						{
+							fs.rename(tempFile, finalDir, function()
+							{
+								if(onFinished) onFinished();
 							});
+						}
+
 					});
 				
 			}
@@ -187,6 +201,9 @@ function doExportWithParams(options, onFinished, onError) {
 	if(options.apiKey) {
 		cfg.apikey = options.apiKey;
 	}
+
+	options['no-extract'] = options.noExtract;
+
 	if(options.noIndex) {
 		options['no-index'] = options.noIndex;
 	}
