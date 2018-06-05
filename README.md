@@ -101,8 +101,8 @@ cables.export({
   jsonFilename: 'my-patch' /* patch will be stored as my-patch.json */
 }, onFinished, onError);
 
-function onFinished() {
-  console.log('Export finished!');
+function onFinished(filename) {
+  console.log('Export finished: '+filename);
 }
 
 function onError(err) {
