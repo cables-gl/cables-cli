@@ -53,6 +53,7 @@ cables -e 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-e` / `--export` `[PATCH ID]`: Export patch
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
 - `-i` /  `--no-index` : Removes the _index.html_ file when set
+- `-x` /  `--no-extract` : do not extract the downloaded zip file
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
 
 ## Use as a module
