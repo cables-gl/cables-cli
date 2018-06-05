@@ -113,16 +113,17 @@ function doExport(options, onFinished, onError)
 										return;
 									}
 									 console.log('finished...');
-									 if(onFinished) onFinished();
+									 if(onFinished) onFinished(finalDir);
 									 fs.unlinkSync(tempFile);
 								});
 	
 						}
 						else
 						{
-							fs.rename(tempFile, finalDir, function()
+							var finalFilename=finalDir+basename(info.path)+'.zip';
+							fs.rename(tempFile, finalFilename, function()
 							{
-								if(onFinished) onFinished();
+								if(onFinished) onFinished(finalFilename);
 							});
 						}
 
