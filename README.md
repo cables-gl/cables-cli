@@ -2,7 +2,7 @@
 
 # cables-cli
 
-_Tool to export and download [cables](https://cables.gl) patches from the command line_
+_Command line tool to export and download [cables](https://cables.gl) patches from the command line_
 
 ```
              C   A   B   L   E   S   >>>  ___:_ _
