@@ -55,6 +55,7 @@ cables -e 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-i` /  `--no-index` : Removes the _index.html_ file when set
 - `-x` /  `--no-extract` : do not extract the downloaded zip file
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
+- `-c` / `--combine-js` : combine javascript and json into a single patch.js
 
 ## Use as a module
 
@@ -110,6 +111,14 @@ function onError(err) {
 }
 ```
 
+Use in package.json:
+```json
+{
+  "scripts": {
+      "patchup": "cables -c -i -d 'public' -e 5a4ea356429259dd579a0fea"
+  }
+}
+```
 
 
 ## Further Infos

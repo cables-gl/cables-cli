@@ -20,6 +20,7 @@ const cmdOptions =
 		{ name: 'no-index', alias: 'i', type: Boolean },
 		{ name: 'no-extract', alias: 'x', type: Boolean },
 		{ name: 'json-filename', alias: 'j', type: String },
+		{ name: 'combine-js', alias: 'c', type: String }
 	];
 
 const options = commandLineArgs(cmdOptions)
@@ -51,6 +52,10 @@ function doExport(options, onFinished, onError)
 		// check for no-index option, which omits the index file
 		if(options['no-index'] !== undefined) {
 			queryParams += 'removeIndexHtml=1&';
+		}
+
+		if(options['combine-js'] !== undefined) {
+			queryParams += 'combineJS=true&'
 		}
 
 		// check for json filename option to specify the json filename
