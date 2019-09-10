@@ -27,7 +27,7 @@
     "fs": "0.0.1-security",
     "home-config": "^0.1.0",
     "prompt": "^1.0.0",
-    "request": "^2.83.0"
+    "request": "2.88.0"
   },
   "repository": {
     "type": "git",
