@@ -20,7 +20,8 @@ const cmdOptions =
 		{ name: 'no-index', alias: 'i', type: Boolean },
 		{ name: 'no-extract', alias: 'x', type: Boolean },
 		{ name: 'json-filename', alias: 'j', type: String },
-		{ name: 'combine-js', alias: 'c', type: String }
+		{ name: 'combine-js', alias: 'c', type: String },
+		{ name: 'old-browsers', alias: 'o', type: String}
 	];
 
 const options = commandLineArgs(cmdOptions)
@@ -56,6 +57,10 @@ function doExport(options, onFinished, onError)
 
 		if(options['combine-js'] !== undefined) {
 			queryParams += 'combineJS=true&'
+		}
+
+		if(options['old-browsers'] !== undefined) {
+			queryParams += 'compatibility=old&'
 		}
 
 		// check for json filename option to specify the json filename
