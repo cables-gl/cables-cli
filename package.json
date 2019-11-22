@@ -10,9 +10,9 @@
     "cables": "./index.js"
   },
   "author": "undev (https://undev.studio)",
-  "homepage": "https://github.com/pandrr/cables-cli",
+  "homepage": "https://github.com/cables-gl/cables-cli",
   "bugs": {
-    "url": "https://github.com/pandrr/cables-cli/issues"
+    "url": "https://github.com/cables-gl/cables-cli/issues"
   },
   "keywords": [
     "visual-programming",
@@ -31,6 +31,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pandrr/cables-cli.git"
+    "url": "https://github.com/cables-gl/cables-cli.git"
   }
 }
