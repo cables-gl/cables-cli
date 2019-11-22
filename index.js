@@ -10,7 +10,6 @@ const extract = require('extract-zip');
 
 
 const configFilename = '.cablesrc';
-const cablesUrl = 'https://cables.gl';
 
 
 const cmdOptions =
@@ -21,7 +20,8 @@ const cmdOptions =
     { name: 'no-extract', alias: 'x', type: Boolean },
     { name: 'json-filename', alias: 'j', type: String },
     { name: 'combine-js', alias: 'c', type: String },
-    { name: 'old-browsers', alias: 'o', type: String }
+    { name: 'old-browsers', alias: 'o', type: String },
+    { name: 'dev', alias: 'D', type: String }
   ];
 
 const options = commandLineArgs(cmdOptions);
@@ -66,6 +66,11 @@ function doExport(options, onFinished, onError) {
       queryParams += 'jsonName=' + jsonFn + '&';
     }
 
+    let cablesUrl = 'https://cables.gl';
+    if(options['dev'] !== undefined) {
+      cablesUrl = 'https://dev.cables.gl';
+    }
+
     const url = cablesUrl + '/api/project/' + options.export + '/export?' + queryParams;
 
     const reqOptions =
@@ -82,7 +87,7 @@ function doExport(options, onFinished, onError) {
         const info = JSON.parse(body);
         const tempFile = basename(info.path) + '.zip';
 
-        console.log('downloading...');
+        console.log(`downloading from ${url}...`);
 
         download(cablesUrl + info.path, tempFile,
           function() {
