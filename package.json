@@ -1,6 +1,6 @@
 {
   "name": "@cables/cables",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,8 @@
     "fs": "0.0.1-security",
     "home-config": "^0.1.0",
     "prompt": "^1.0.0",
-    "request": "2.88.0"
+    "request": "2.88.0",
+    "netlify": "3.0.0"
   },
   "repository": {
     "type": "git",

@@ -29,9 +29,11 @@ When you first start the tool it will show a prompt for the API key. Once entere
 
 ## Run
 
+### Export
+
 To export and download a cables patch into a specific directory  run:  
 ```shell
-cables -e [CABLES PATCH ID] -d [DESTINATION]
+cables --export [CABLES PATCH ID] -d [DESTINATION]
 ```
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
 
@@ -43,12 +45,12 @@ https://cables.gl/ui/#/project/5a7daa8b285c9aca0982bba2
 Example:    
 
 ```shell
-cables -e 5a7daa8b285c9aca0982bba2 -d 'my-patch'
+cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 ```
 
 **Please note:** Running the command will overwrite  everything in the `my-patch`-folder.
 
-## Arguments
+#### Arguments
 
 - `-e` / `--export` `[PATCH ID]`: Export patch
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
@@ -57,6 +59,31 @@ cables -e 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
 - `-o` / `--old-browsers`: load a version made compatible with older browsers using babel
+
+
+### Deploy to [netlify](https://www.netlify.com/)
+
+Create an account on [netlify](https://www.netlify.com/), create a site by uploading a folder with a simple index.html.
+Go to the new site's settings and copy the "API ID". Then run the following commands (if you do this for the first time 
+cables-cli will ask you for your netlify-api-key, create and copy one at/from "Site Settings > Access control").
+
+Deploy the current directory to netlify:
+```shell
+cables --deploy netlify -d [SITE ID]
+```
+
+Deploy any directory to netlify (useful with webpack buildir or `cables --export -d`)
+```shell
+cables --deploy netlify -d [SITE ID] -s build/
+```
+
+**Please note:** Running the command will overwrite  everything in the netlify site. They version their deploys, though.
+
+#### Arguments
+
+- `--deploy` `netlify`: Deploy patch to netlify
+- `-d` / `--destination` `[SITE ID]`: Netlify-Site API ID to upload the files to 
+- `-s` /  `--src` `[DIRECTORY]`: which directory to send to netlify, defaults to current working directory
 
 ## Use as a module
 
@@ -72,7 +99,7 @@ Export:
 cables.export(options, onFinished, onError);
 ```
 
-Simple Example:  
+Simple Export Example:  
 
 ```javascript
 var cables = require('@cables/cables');
@@ -91,7 +118,25 @@ function onError(err) {
 }
 ```
 
-Advanced Example:  
+Simple Deploy Example:
+
+```javascript
+var cables = require('@cables/cables');
+
+cables.netlify({
+  destination: 'YOURNETLIFYSITEID' 
+}, onFinished, onError);
+
+function onFinished() {
+  console.log('Deploy finished!');
+}
+
+function onError(err) {
+  console.log('There was an error deploying your patch :/');
+}
+```
+
+Advanced Export Example:  
 
 ```javascript
 var cables = require('@cables/cables');
@@ -116,13 +161,14 @@ Use in package.json:
 ```json
 {
   "scripts": {
-      "patchup": "cables -c -i -d 'public' -e 5a4ea356429259dd579a0fea"
+      "patchup": "cables -c -i -d 'public' -e 5a4ea356429259dd579a0fea",
+      "deploy": "cables --deploy netlify -d [SITE ID] -s public/"
   }
 }
 ```
 
+The project contains an example-package.json with `patchup` and `deploy` as predefined scripts.
 
 ## Further Infos
 
 For more infos on the cables API see [cables API docs](https://docs.cables.gl/api/api.html).
-
