@@ -162,10 +162,17 @@ function doExport(options, onFinished, onError) {
         });
 
     } else {
-      const errMessage = 'invalid response code';
+      let errMessage = 'invalid response code';
       console.error(errMessage);
       console.log(body);
       if (onError) {
+        try {
+          const e = JSON.parse(body);
+          if (e.msg) {
+            errMessage = e.msg;
+          }
+        } catch (e) {
+        }
         onError(errMessage);
       }
     }
@@ -249,14 +256,14 @@ function isNetlifyKeyDefined() {
 }
 
 function doNetlifyDeployWithParams(options, onFinished, onError) {
-  if(!options || !options.destination) {
+  if (!options || !options.destination) {
     const errMessage = 'no options set!';
     if (onError) {
       onError(errMessage);
     }
     return;
   }
-  if(options.netlifykey) {
+  if (options.netlifykey) {
     cfg.netlifykey = options.netlifykey;
   }
 
@@ -284,6 +291,9 @@ function doExportWithParams(options, onFinished, onError) {
 
   options['no-extract'] = options.noExtract;
 
+  if (options.dev) {
+    options['dev'] = options.dev;
+  }
   if (options.noIndex) {
     options['no-index'] = options.noIndex;
   }
