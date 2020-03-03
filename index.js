@@ -24,7 +24,8 @@ const cmdOptions =
     { name: 'json-filename', alias: 'j', type: String },
     { name: 'combine-js', alias: 'c', type: String },
     { name: 'old-browsers', alias: 'o', type: String },
-    { name: 'dev', alias: 'D', type: String }
+    { name: 'dev', alias: 'D', type: String },
+    { name: 'hideMadeWithCables', alias: 'h', type: String }
   ];
 
 const options = commandLineArgs(cmdOptions);
@@ -77,6 +78,10 @@ function doExport(options, onFinished, onError) {
   // check for no-index option, which omits the index file
   if (options['no-index'] !== undefined) {
     queryParams += 'removeIndexHtml=1&';
+  }
+
+  if(options['hideMadeWithCables'] !== undefined) {
+    queryParams += 'hideMadeWithCables=true&';
   }
 
   if (options['combine-js'] !== undefined) {
@@ -296,6 +301,9 @@ function doExportWithParams(options, onFinished, onError) {
   }
   if (options.noIndex) {
     options['no-index'] = options.noIndex;
+  }
+  if(options.hideMadeWithCables) {
+    options['hideMadeWithCables'] = options.hideMadeWithCables;
   }
   if (options.jsonFilename) {
     options['json-filename'] = options.jsonFilename;
