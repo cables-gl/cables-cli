@@ -294,6 +294,7 @@ function doExportWithParams(options, onFinished, onError) {
     cfg.apikey = options.apiKey;
   }
 
+  options['combine-js'] = options.combineJs;
   options['no-extract'] = options.noExtract;
 
   if (options.dev) {
