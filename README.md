@@ -59,7 +59,7 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
 - `-o` / `--old-browsers`: load a version made compatible with older browsers using babel
-
+- `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
 
 ### Deploy to [netlify](https://www.netlify.com/)
 

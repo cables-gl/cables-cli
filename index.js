@@ -13,6 +13,12 @@ const NetlifyAPI = require('netlify');
 const configFilename = '.cablesrc';
 
 
+const assetExportOptions = [
+  'auto',
+  'all',
+  'none'
+];
+
 const cmdOptions =
   [
     { name: 'export', alias: 'e', type: String },
@@ -25,7 +31,8 @@ const cmdOptions =
     { name: 'combine-js', alias: 'c', type: String },
     { name: 'old-browsers', alias: 'o', type: String },
     { name: 'dev', alias: 'D', type: String },
-    { name: 'hideMadeWithCables', alias: 'h', type: String }
+    { name: 'hideMadeWithCables', alias: 'h', type: String },
+    { name: 'assets', alias: 'a', type: String }
   ];
 
 const options = commandLineArgs(cmdOptions);
@@ -80,7 +87,7 @@ function doExport(options, onFinished, onError) {
     queryParams += 'removeIndexHtml=1&';
   }
 
-  if(options['hideMadeWithCables'] !== undefined) {
+  if (options['hideMadeWithCables'] !== undefined) {
     queryParams += 'hideMadeWithCables=true&';
   }
 
@@ -90,6 +97,13 @@ function doExport(options, onFinished, onError) {
 
   if (options['old-browsers'] !== undefined) {
     queryParams += 'compatibility=old&';
+  }
+
+  const assetExport = options['assets'];
+  if (assetExport !== undefined && assetExportOptions.includes(assetExport)) {
+    queryParams += `assets=${options['assets']}&`;
+  } else {
+    queryParams += 'assets=auto';
   }
 
   // check for json filename option to specify the json filename
@@ -303,12 +317,19 @@ function doExportWithParams(options, onFinished, onError) {
   if (options.noIndex) {
     options['no-index'] = options.noIndex;
   }
-  if(options.hideMadeWithCables) {
+  if (options.hideMadeWithCables) {
     options['hideMadeWithCables'] = options.hideMadeWithCables;
   }
   if (options.jsonFilename) {
     options['json-filename'] = options.jsonFilename;
   }
+
+  if (options.assets && assetExportOptions.includes(options.assets)) {
+    options['assets'] = options.assets;
+  } else {
+    options['assets'] = 'auto';
+  }
+
   if (!cfg.apikey) {
     if (onError) {
       onError('API key needed!');
