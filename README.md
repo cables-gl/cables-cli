@@ -64,8 +64,10 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 ### Deploy to [netlify](https://www.netlify.com/)
 
 Create an account on [netlify](https://www.netlify.com/), create a site by uploading a folder with a simple index.html.
-Go to the new site's settings and copy the "API ID". Then run the following commands (if you do this for the first time 
-cables-cli will ask you for your netlify-api-key, create and copy one at/from "Site Settings > Access control").
+Go to the new site's settings and copy the "API ID" (this is your [SITE ID]). Then run the following commands:
+ 
+If you do this for the first time  cables-cli will ask you for your netlify-api-key,
+create and copy one at/from ["User Settings > Applications"](https://app.netlify.com/user/applications).
 
 Deploy the current directory to netlify:
 ```shell
