@@ -32,7 +32,8 @@ const cmdOptions =
     { name: 'old-browsers', alias: 'o', type: String },
     { name: 'dev', alias: 'D', type: String },
     { name: 'hideMadeWithCables', alias: 'h', type: String },
-    { name: 'assets', alias: 'a', type: String }
+    { name: 'assets', alias: 'a', type: String },
+    { name: 'skip-backups', alias: 'b', type: Boolean }
   ];
 
 const options = commandLineArgs(cmdOptions);
@@ -97,6 +98,10 @@ function doExport(options, onFinished, onError) {
 
   if (options['old-browsers'] !== undefined) {
     queryParams += 'compatibility=old&';
+  }
+
+  if (options['skip-backups'] !== undefined) {
+    queryParams += 'skipBackups=true&';
   }
 
   const assetExport = options['assets'];
@@ -322,6 +327,10 @@ function doExportWithParams(options, onFinished, onError) {
   }
   if (options.jsonFilename) {
     options['json-filename'] = options.jsonFilename;
+  }
+
+  if (options.skipBackups) {
+    options['skip-backups'] = options.skipBackups;
   }
 
   if (options.assets && assetExportOptions.includes(options.assets)) {
