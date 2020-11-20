@@ -162,19 +162,17 @@ function doExport(options, onFinished, onError) {
           if (!options['no-extract']) {
             console.log('extracting to ' + finalDir);
 
-            extract(tempFile, { dir: finalDir },
-              function(err) {
-                if (err) {
-                  console.log(err);
-                  if (onError) {
-                    onError(err);
-                  }
-                  return;
+            extract(tempFile, { dir: finalDir }).then(() => {
+              console.log('finished...');
+              if (onFinished) onFinished(finalDir);
+              fs.unlinkSync(tempFile);
+            }).catch((err) => {
+                console.log(err);
+                if (onError) {
+                  onError(err);
                 }
-                console.log('finished...');
-                if (onFinished) onFinished(finalDir);
-                fs.unlinkSync(tempFile);
-              });
+              }
+            );
 
           } else {
             const finalFilename = finalDir + basename(info.path) + '.zip';
