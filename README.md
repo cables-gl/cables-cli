@@ -61,6 +61,7 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-o` / `--old-browsers`: load a version made compatible with older browsers using babel
 - `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
 - `-b` / `--skip-backups`: do not include backup files in patch export
+- `-D` / `--dev`: export from dev server 
 
 ### Deploy to [netlify](https://www.netlify.com/)
 
