@@ -7,7 +7,7 @@ const fs = require('fs');
 const basename = require('basename');
 const prompt = require('prompt');
 const extract = require('extract-zip');
-const NetlifyAPI = require('netlify');
+const NetlifyAPI = import('netlify');
 
 
 const configFilename = '.cablesrc';
@@ -29,7 +29,6 @@ const cmdOptions =
     { name: 'no-extract', alias: 'x', type: Boolean },
     { name: 'json-filename', alias: 'j', type: String },
     { name: 'combine-js', alias: 'c', type: String },
-    { name: 'old-browsers', alias: 'o', type: String },
     { name: 'dev', alias: 'D', type: String },
     { name: 'hideMadeWithCables', alias: 'h', type: String },
     { name: 'assets', alias: 'a', type: String },
@@ -94,10 +93,6 @@ function doExport(options, onFinished, onError) {
 
   if (options['combine-js'] !== undefined) {
     queryParams += 'combineJS=true&';
-  }
-
-  if (options['old-browsers'] !== undefined) {
-    queryParams += 'compatibility=old&';
   }
 
   if (options['skip-backups'] !== undefined) {

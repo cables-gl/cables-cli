@@ -1,6 +1,6 @@
 {
   "name": "@cables/cables",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
@@ -22,13 +22,13 @@
   "license": "MIT",
   "dependencies": {
     "basename": "0.1.2",
-    "command-line-args": "5.1.1",
+    "command-line-args": "5.2.1",
     "extract-zip": "2.0.1",
     "fs": "0.0.1-security",
     "home-config": "0.1.0",
-    "prompt": "1.0.0",
-    "request": "2.88.0",
-    "netlify": "4.9.0"
+    "prompt": "1.3.0",
+    "request": "2.88.2",
+    "netlify": "11.0.2"
   },
   "repository": {
     "type": "git",
