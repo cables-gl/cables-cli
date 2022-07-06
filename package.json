@@ -1,10 +1,11 @@
 {
   "name": "@cables/cables",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preinstall": "npm-force-resolutions",
+    "test": "node index.js -D -c -a all -d test/ -e FO9IG3"
   },
   "bin": {
     "cables": "./index.js"
@@ -26,12 +27,18 @@
     "extract-zip": "2.0.1",
     "fs": "0.0.1-security",
     "home-config": "0.1.0",
-    "prompt": "1.3.0",
-    "request": "2.88.2",
-    "netlify": "11.0.2"
+    "netlify": "11.0.2",
+    "node-fetch": "2.6.7",
+    "prompt": "1.3.0"
+  },
+  "resolutions": {
+    "ini": "1.3.8"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/cables-gl/cables-cli.git"
+  },
+  "devDependencies": {
+    "npm-force-resolutions": "^0.0.10"
   }
 }

@@ -1,6 +1,7 @@
 *.iml
 .idea/
 
+test/
 node_modules/
 /.vscode
 .DS_Store

@@ -2,38 +2,36 @@
 const path = require('path');
 const process = require('process');
 const commandLineArgs = require('command-line-args');
-const request = require('request');
 const fs = require('fs');
 const basename = require('basename');
 const prompt = require('prompt');
 const extract = require('extract-zip');
 const NetlifyAPI = import('netlify');
-
+const fetch = require('node-fetch');
 
 const configFilename = '.cablesrc';
-
 
 const assetExportOptions = [
   'auto',
   'all',
-  'none'
+  'none',
 ];
 
 const cmdOptions =
-  [
-    { name: 'export', alias: 'e', type: String },
-    { name: 'deploy', type: String },
-    { name: 'src', alias: 's', type: String },
-    { name: 'destination', alias: 'd', type: String },
-    { name: 'no-index', alias: 'i', type: Boolean },
-    { name: 'no-extract', alias: 'x', type: Boolean },
-    { name: 'json-filename', alias: 'j', type: String },
-    { name: 'combine-js', alias: 'c', type: String },
-    { name: 'dev', alias: 'D', type: String },
-    { name: 'hideMadeWithCables', alias: 'h', type: String },
-    { name: 'assets', alias: 'a', type: String },
-    { name: 'skip-backups', alias: 'b', type: Boolean }
-  ];
+    [
+      {name: 'export', alias: 'e', type: String},
+      {name: 'deploy', type: String},
+      {name: 'src', alias: 's', type: String},
+      {name: 'destination', alias: 'd', type: String},
+      {name: 'no-index', alias: 'i', type: Boolean},
+      {name: 'no-extract', alias: 'x', type: Boolean},
+      {name: 'json-filename', alias: 'j', type: String},
+      {name: 'combine-js', alias: 'c', type: String},
+      {name: 'dev', alias: 'D', type: String},
+      {name: 'hideMadeWithCables', alias: 'h', type: String},
+      {name: 'assets', alias: 'a', type: String},
+      {name: 'skip-backups', alias: 'b', type: Boolean},
+    ];
 
 const options = commandLineArgs(cmdOptions);
 
@@ -46,9 +44,9 @@ function isRunAsCli() {
 }
 
 const download = function(uri, filename, callback) {
-  request.head(uri, function(err, res) {
-    console.log('size:', Math.round(res.headers['content-length'] / 1024) + 'kb');
-    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+  fetch(uri, {'method': 'HEAD'}).then((res) => {
+    console.log('size:', Math.round(res.headers.get('content-length') / 1024) + 'kb');
+    fetch(uri).then(x => x.arrayBuffer()).then(x => fs.writeFile(filename, Buffer.from(x), callback));
   });
 };
 
@@ -120,27 +118,15 @@ function doExport(options, onFinished, onError) {
 
   const url = cablesUrl + '/api/project/' + options.export + '/export?' + queryParams;
 
-  const reqOptions =
-    {
-      url: url,
-      headers:
-        {
-          'apikey': cfg.apikey
-        }
-    };
+  function callback(response) {
+    const tempFile = basename(response.path) + '.zip';
+    console.log(`downloading from ${url}...`);
 
-  function callback(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      const info = JSON.parse(body);
-      const tempFile = basename(info.path) + '.zip';
-
-      console.log(`downloading from ${url}...`);
-
-      download(cablesUrl + info.path, tempFile,
+    download(cablesUrl + response.path, tempFile,
         function() {
           console.log('download finished... ', tempFile);
 
-          let finalDir = path.join(process.cwd(), basename(info.path));
+          let finalDir = path.join(process.cwd(), basename(response.path));
           if (options.destination !== undefined) { // flag "-d" is set
             if (options.destination && options.destination.length > 0) { // folder name passed after flag
               if (path.isAbsolute(options.destination)) {
@@ -149,54 +135,70 @@ function doExport(options, onFinished, onError) {
                 finalDir = path.normalize(path.join(process.cwd(), options.destination)); // use custom directory
               }
             } else {
-              finalDir = path.join(process.cwd(), 'patch'); // use directory 'patch'
+              finalDir = path.join(process.cwd(), 'patch'); // use directory "patch"
             }
           }
 
-
           if (!options['no-extract']) {
             console.log('extracting to ' + finalDir);
-
-            extract(tempFile, { dir: finalDir }).then(() => {
+            extract(tempFile, {dir: finalDir}).then(() => {
               console.log('finished...');
               if (onFinished) onFinished(finalDir);
               fs.unlinkSync(tempFile);
             }).catch((err) => {
-                console.log(err);
-                if (onError) {
-                  onError(err);
-                }
-              }
+                  console.log(err);
+                  if (onError) {
+                    onError(err);
+                  }
+                },
             );
-
           } else {
-            const finalFilename = finalDir + basename(info.path) + '.zip';
+            const finalFilename = finalDir + basename(response.path) + '.zip';
             fs.rename(tempFile, finalFilename, function() {
               if (onFinished) onFinished(finalFilename);
             });
           }
-
         });
 
-    } else {
-      let errMessage = 'invalid response code';
-      console.error(errMessage);
-      console.log(body);
-      if (onError) {
-        try {
-          const e = JSON.parse(body);
-          if (e.msg) {
-            errMessage = e.msg;
-          }
-        } catch (e) {
-        }
-        onError(errMessage);
-      }
-    }
   }
 
   console.log('requesting export...');
-  request(reqOptions, callback);
+  const reqOptions =
+      {
+        headers:
+            {
+              'apikey': cfg.apikey,
+            },
+      };
+  fetch(url, reqOptions).then((response) => {
+    if (!response.ok || response.status !== 200) {
+      let errMessage = '';
+      switch (response.status) {
+        case 500:
+          errMessage = 'unknown error, maybe try again';
+          break;
+        case 404:
+          errMessage = 'unknown project, check patchid: ' + options.export;
+          break;
+        case 401:
+          errMessage = 'insufficient rights for project export';
+          break;
+        case 400:
+          errMessage = 'invalid api key';
+          break;
+        default:
+          errMessage = 'invalid response code: ' + response.status;
+          break;
+      }
+      throw new Error(errMessage);
+    }
+    return response;
+  }).then((response) => { return response.json(); }).then(callback).catch((e) => {
+    console.log('ERROR:', e.message);
+    if (onError) {
+      onError(e.message);
+    }
+  });
 
 }
 
@@ -244,7 +246,7 @@ if (isRunAsCli()) {
 }
 
 /**
- * Removes the file-extension from a file, e.g. 'foo.json' -> `foo`
+ * Removes the file-extension from a file, e.g. "foo.json" -> `foo`
  * @param {string} filename - The filename to strip the extension from
  * @returns {string|undefined} - The filename without extension or undefined if filename is undefined
  */
@@ -344,5 +346,5 @@ function doExportWithParams(options, onFinished, onError) {
 
 module.exports = {
   export: doExportWithParams,
-  netlify: doNetlifyDeployWithParams
+  netlify: doNetlifyDeployWithParams,
 };
