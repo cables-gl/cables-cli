@@ -240,7 +240,7 @@ if (isRunAsCli()) {
       doExport(options);
     }
   } else {
-    const errMessage = 'neither --export not --deploy defined with correct parameters';
+    const errMessage = 'neither --export nor --deploy defined with correct parameters';
     console.error(errMessage);
   }
 }
