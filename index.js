@@ -31,6 +31,7 @@ const cmdOptions =
       {name: 'hideMadeWithCables', alias: 'h', type: String},
       {name: 'assets', alias: 'a', type: String},
       {name: 'skip-backups', alias: 'b', type: Boolean},
+      {name: 'no-subdirs', alias: 'f', type: Boolean},
     ];
 
 const options = commandLineArgs(cmdOptions);
@@ -95,6 +96,10 @@ function doExport(options, onFinished, onError) {
 
   if (options['skip-backups'] !== undefined) {
     queryParams += 'skipBackups=true&';
+  }
+
+  if (options['no-subdirs'] !== undefined) {
+    queryParams += 'flat=true&';
   }
 
   const assetExport = options['assets'];
@@ -326,6 +331,10 @@ function doExportWithParams(options, onFinished, onError) {
 
   if (options.skipBackups) {
     options['skip-backups'] = options.skipBackups;
+  }
+
+  if (options.noSubdirs) {
+    options['no-subdirs'] = options.noSubdirs;
   }
 
   if (options.assets && assetExportOptions.includes(options.assets)) {

@@ -60,6 +60,7 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
 - `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
 - `-b` / `--skip-backups`: do not include backup files in patch export
+- `-f` / `--no-subdirs`: put js and assets into same directory as `index.html` ("flat export")
 - `-D` / `--dev`: export from dev server 
 
 ### Deploy to [netlify](https://www.netlify.com/)
