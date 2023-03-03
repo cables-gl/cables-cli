@@ -53,6 +53,7 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 #### Arguments
 
 - `-e` / `--export` `[PATCH ID]`: Export patch
+- `-C` / `--code` `[PATCH ID],[PATCH ID],[PATCH ID]`: Export ops code for patch(es)
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
 - `-i` /  `--no-index` : Removes the _index.html_ file when set
 - `-x` /  `--no-extract` : do not extract the downloaded zip file
@@ -63,37 +64,11 @@ cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
 - `-f` / `--no-subdirs`: put js and assets into same directory as `index.html` ("flat export")
 - `-D` / `--dev`: export from dev server 
 
-### Deploy to [netlify](https://www.netlify.com/)
-
-Create an account on [netlify](https://www.netlify.com/), create a site by uploading a folder with a simple index.html.
-Go to the new site's settings and copy the "API ID" (this is your [SITE ID]). Then run the following commands:
- 
-If you do this for the first time  cables-cli will ask you for your netlify-api-key/personal access token,
-create and copy one at/from ["User Settings > Applications"](https://app.netlify.com/user/applications).
-
-Deploy the current directory to netlify:
-```shell
-cables --deploy netlify -d [SITE ID]
-```
-
-Deploy any directory to netlify (useful with webpack buildir or `cables --export -d`)
-```shell
-cables --deploy netlify -d [SITE ID] -s build/
-```
-
-**Please note:** Running the command will overwrite  everything in the netlify site. They version their deploys, though.
-
-#### Arguments
-
-- `--deploy` `netlify`: Deploy patch to netlify
-- `-d` / `--destination` `[SITE ID]`: Netlify-Site API ID to upload the files to 
-- `-s` /  `--src` `[DIRECTORY]`: which directory to send to netlify, defaults to current working directory
-
 ## Use as a module
 
 Install as dependency:  
 
-```
+```shell
 npm install --save @cables/cables
 ```
 
@@ -122,24 +97,6 @@ function onError(err) {
 }
 ```
 
-Simple Deploy Example:
-
-```javascript
-var cables = require('@cables/cables');
-
-cables.netlify({
-  destination: 'YOURNETLIFYSITEID' 
-}, onFinished, onError);
-
-function onFinished() {
-  console.log('Deploy finished!');
-}
-
-function onError(err) {
-  console.log('There was an error deploying your patch :/');
-}
-```
-
 Advanced Export Example:  
 
 ```javascript
@@ -161,12 +118,43 @@ function onError(err) {
 }
 ```
 
+Export Code (`-C`) Example:
+
+If you just need the op-code of one or more patches you created, you can
+use the `-C` option and provide a comma-seperated list of patch-ids to
+download `ops.js` with all code included.
+
+This is helpful, when you want to add multiple patches to one page. Download
+the patches individually (do NOT use `--combine-js`), load libs and `cables.min.js`
+as provided in the individual `index.html` and swap out `ops.js` with this download.
+
+```shell
+cables -C -d 'public' 5a4ea356429259dd579a0fea
+```
+
+```javascript
+var cables = require('@cables/cables');
+
+cables.code({
+  code: 'one,two,thee',
+  destination: 'patch' 
+}, onFinished, onError);
+
+function onFinished() {
+  console.log('Export finished!');
+}
+
+function onError(err) {
+  console.log('There was an error exporting your patch :/');
+}
+```
+
 Use in package.json:
 ```json
 {
   "scripts": {
       "patchup": "cables -c -i -d 'public' -e 5a4ea356429259dd579a0fea",
-      "deploy": "cables --deploy netlify -d [SITE ID] -s public/"
+      "code": "cables -C -d 'public' 5a4ea356429259dd579a0fea"
   }
 }
 ```
