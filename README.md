@@ -38,14 +38,14 @@ cables --export [CABLES PATCH ID] -d [DESTINATION]
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
 
 ```shell
-https://cables.gl/ui/#/project/5a7daa8b285c9aca0982bba2
-—> 5a7daa8b285c9aca0982bba2 is the patch ID
+https://cables.gl/edit/rTVxvC
+—> rTVxvC is the patch ID
 ```
 
 Example:    
 
 ```shell
-cables --export 5a7daa8b285c9aca0982bba2 -d 'my-patch'
+cables --export rTVxvC -d 'my-patch'
 ```
 
 **Please note:** Running the command will overwrite  everything in the `my-patch`-folder.
@@ -84,7 +84,7 @@ Simple Export Example:
 var cables = require('@cables/cables');
 
 cables.export({
-  patchId: '5a4ea356429259dd579a0fea',
+  patchId: 'rTVxvC',
   destination: 'patch' 
 }, onFinished, onError);
 
@@ -103,7 +103,7 @@ Advanced Export Example:
 var cables = require('@cables/cables');
 
 cables.export({
-  patchId: '5a4ea356429259dd579a0fea',
+  patchId: 'rTVxvC',
   destination: 'patch',
   noIndex: true,
   jsonFilename: 'my-patch' /* patch will be stored as my-patch.json */
@@ -129,7 +129,7 @@ the patches individually (do NOT use `--combine-js`), load libs and `cables.min.
 as provided in the individual `index.html` and swap out `ops.js` with this download.
 
 ```shell
-cables -C -d 'public' 5a4ea356429259dd579a0fea
+cables -C -d 'public' rTVxvC
 ```
 
 ```javascript
@@ -153,8 +153,8 @@ Use in package.json:
 ```json
 {
   "scripts": {
-      "patchup": "cables -c -i -d 'public' -e 5a4ea356429259dd579a0fea",
-      "code": "cables -C -d 'public' 5a4ea356429259dd579a0fea"
+      "patchup": "cables -c -i -d 'public' -e rTVxvC",
+      "code": "cables -C -d 'public' rTVxvC"
   }
 }
 ```
