@@ -4,7 +4,7 @@
   "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js -D -a all -d test/ -e FO9IG3",
+    "test": "node index.js -c -D -m -a all -d test/ -e FO9IG3",
     "code": "node index.js -d test/js/ -C FO9IG3,lntUQx,TctR5r"
   },
   "bin": {

@@ -84,6 +84,11 @@ const cmdOptions =
             alias: "f",
             type: Boolean,
         },
+        {
+            name: "no-minify",
+            alias: "m",
+            type: Boolean,
+        },
     ];
 
 const options = commandLineArgs(cmdOptions);
@@ -138,6 +143,11 @@ function doExport(options, onFinished, onError)
     if (options["no-subdirs"] !== undefined)
     {
         queryParams += "flat=true&";
+    }
+
+    if (options["no-minify"] !== undefined)
+    {
+        queryParams += "minify=false&";
     }
 
     const assetExport = options["assets"];
@@ -499,6 +509,11 @@ function doExportWithParams(options, onFinished, onError)
     if (options.noSubdirs)
     {
         options["no-subdirs"] = options.noSubdirs;
+    }
+
+    if (options.noMinify)
+    {
+        options["no-minify"] = options.noMinify;
     }
 
     if (options.assets && assetExportOptions.includes(options.assets))

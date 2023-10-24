@@ -55,13 +55,14 @@ cables --export rTVxvC -d 'my-patch'
 - `-e` / `--export` `[PATCH ID]`: Export patch
 - `-C` / `--code` `[PATCH ID],[PATCH ID],[PATCH ID]`: Export ops code for patch(es)
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
-- `-i` /  `--no-index` : Removes the _index.html_ file when set
-- `-x` /  `--no-extract` : do not extract the downloaded zip file
+- `-i` / `--no-index` : Removes the _index.html_ file when set
+- `-x` / `--no-extract` : do not extract the downloaded zip file
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
 - `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
 - `-b` / `--skip-backups`: do not include backup files in patch export
 - `-f` / `--no-subdirs`: put js and assets into same directory as `index.html` ("flat export")
+- `-m` / `--no-minify`: do not minify code ("flat export")
 - `-D` / `--dev`: export from dev server 
 
 ## Use as a module
