@@ -157,7 +157,7 @@ function doExport(options, onFinished, onError)
     }
     else
     {
-        queryParams += "assets=auto";
+        queryParams += "assets=auto&";
     }
 
     // check for json filename option to specify the json filename
