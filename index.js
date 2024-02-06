@@ -91,7 +91,6 @@ const cmdOptions =
         },
     ];
 
-const options = commandLineArgs(cmdOptions);
 
 /**
  * Returns true if run directly via node,
@@ -392,6 +391,8 @@ const cfg = require("home-config")
 
 if (isRunAsCli())
 {
+    const options = commandLineArgs(cmdOptions);
+
     if (options.export)
     {
         if (!isApiKeyDefined())
