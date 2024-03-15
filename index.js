@@ -1,190 +1,260 @@
-#! /usr/bin/env node
-const path = require("path");
-const process = require("process");
-const commandLineArgs = require("command-line-args");
-const fs = require("fs");
-const basename = require("basename");
-const prompt = require("prompt");
-const extract = require("extract-zip");
-const fetch = require("node-fetch");
-const mkdirp = require("mkdirp");
+import path from "path";
+import commandLineArgs from "command-line-args";
+import fs from "fs";
+import basename from "basename";
+import prompt from "prompt";
+import extract from "extract-zip";
+import fetch from "node-fetch";
+import mkdirp from "mkdirp";
+import homeConfig from "home-config";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
 
-const configFilename = ".cablesrc";
+const { load } = homeConfig;
 
-const assetExportOptions = [
-    "auto",
-    "all",
-    "none",
-];
-
-const cmdOptions =
-    [
-        {
-            name: "export",
-            alias: "e",
-            type: String,
-        },
-        {
-            name: "code",
-            alias: "C",
-            type: String,
-        },
-        {
-            name: "src",
-            alias: "s",
-            type: String,
-        },
-        {
-            name: "destination",
-            alias: "d",
-            type: String,
-        },
-        {
-            name: "no-index",
-            alias: "i",
-            type: Boolean,
-        },
-        {
-            name: "no-extract",
-            alias: "x",
-            type: Boolean,
-        },
-        {
-            name: "json-filename",
-            alias: "j",
-            type: String,
-        },
-        {
-            name: "combine-js",
-            alias: "c",
-            type: String,
-        },
-        {
-            name: "dev",
-            alias: "D",
-            type: String,
-        },
-        {
-            name: "hideMadeWithCables",
-            alias: "h",
-            type: String,
-        },
-        {
-            name: "assets",
-            alias: "a",
-            type: String,
-        },
-        {
-            name: "skip-backups",
-            alias: "b",
-            type: Boolean,
-        },
-        {
-            name: "no-subdirs",
-            alias: "f",
-            type: Boolean,
-        },
-        {
-            name: "no-minify",
-            alias: "m",
-            type: Boolean,
-        },
-    ];
-
-const options = commandLineArgs(cmdOptions);
-
-/**
- * Returns true if run directly via node,
- * returns false if required as module
- */
-function isRunAsCli()
-{
-    return require.main === module;
-}
-
-const download = function (uri, filename, callback)
-{
-    fetch(uri, { "method": "HEAD" })
-        .then((res) =>
-        {
-            console.log("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
-            fetch(uri)
-                .then(x => x.arrayBuffer())
-                .then(x => fs.writeFile(filename, Buffer.from(x), callback));
-        });
-};
-
-function doExport(options, onFinished, onError)
+class CablesCli
 {
 
-    let queryParams = "";
-
-    // check for no-index option, which omits the index file
-    if (options["no-index"] !== undefined)
+    constructor()
     {
-        queryParams += "removeIndexHtml=1&";
-    }
+        this._configFilename = ".cablesrc";
 
-    if (options["hideMadeWithCables"] !== undefined)
-    {
-        queryParams += "hideMadeWithCables=true&";
-    }
+        this._baseUrl = "https://cables.gl";
+        this._devUrl = "https://dev.cables.gl";
 
-    if (options["combine-js"] !== undefined)
-    {
-        queryParams += "combineJS=true&";
-    }
+        this._assetExportOptions = [
+            "auto",
+            "all",
+            "none",
+        ];
 
-    if (options["skip-backups"] !== undefined)
-    {
-        queryParams += "skipBackups=true&";
-    }
-
-    if (options["no-subdirs"] !== undefined)
-    {
-        queryParams += "flat=true&";
-    }
-
-    if (options["no-minify"] !== undefined)
-    {
-        queryParams += "minify=false&";
-    }
-
-    const assetExport = options["assets"];
-    if (assetExport !== undefined && assetExportOptions.includes(assetExport))
-    {
-        queryParams += `assets=${options["assets"]}&`;
-    }
-    else
-    {
-        queryParams += "assets=auto";
-    }
-
-    // check for json filename option to specify the json filename
-    let jsonFn = options["json-filename"];
-    if (jsonFn)
-    {
-        jsonFn = stripExtension(jsonFn);
-        queryParams += "jsonName=" + jsonFn + "&";
-    }
-
-    let cablesUrl = "https://cables.gl";
-    if (options["dev"] !== undefined)
-    {
-        cablesUrl = "https://dev.cables.gl";
-    }
-
-    const url = cablesUrl + "/api/project/" + options.export + "/export?" + queryParams;
-
-    function callback(response)
-    {
-        const tempFile = basename(response.path) + ".zip";
-        console.log(`downloading from ${url}...`);
-
-        download(cablesUrl + response.path, tempFile,
-            function ()
+        this._cmdOptions = [
             {
-                console.log("download finished... ", tempFile);
+                name: "export",
+                alias: "e",
+                type: String,
+            },
+            {
+                name: "code",
+                alias: "C",
+                type: String,
+            },
+            {
+                name: "src",
+                alias: "s",
+                type: String,
+            },
+            {
+                name: "destination",
+                alias: "d",
+                type: String,
+            },
+            {
+                name: "no-index",
+                alias: "i",
+                type: Boolean,
+            },
+            {
+                name: "no-extract",
+                alias: "x",
+                type: Boolean,
+            },
+            {
+                name: "json-filename",
+                alias: "j",
+                type: String,
+            },
+            {
+                name: "combine-js",
+                alias: "c",
+                type: String,
+            },
+            {
+                name: "dev",
+                alias: "D",
+                type: String,
+            },
+            {
+                name: "hideMadeWithCables",
+                alias: "h",
+                type: String,
+            },
+            {
+                name: "assets",
+                alias: "a",
+                type: String,
+            },
+            {
+                name: "skip-backups",
+                alias: "b",
+                type: Boolean,
+            },
+            {
+                name: "no-subdirs",
+                alias: "f",
+                type: Boolean,
+            },
+            {
+                name: "no-minify",
+                alias: "m",
+                type: Boolean,
+            },
+            {
+                name: "url",
+                type: String,
+            },
+        ];
+
+        this._options = commandLineArgs(this._cmdOptions);
+
+        if (this._options.dev !== undefined)
+        {
+            this._baseUrl = this._devUrl;
+        }
+
+        if (this._options.url) this._baseUrl = this._options.url;
+        if (this._baseUrl.includes("local")) process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+        this._cfg = load(this._configFilename);
+
+        if (this._isRunAsCli())
+        {
+            if (this._options.export)
+            {
+                if (!this._isApiKeyDefined())
+                {
+                    console.error("NO CONFIG FOUND!");
+                    console.info("paste your apikey:");
+
+                    prompt.get(["apikey"], (err, result) =>
+                    {
+                        this._cfg.apikey = result.apikey;
+                        this._cfg.save();
+                        this._doExport(this._options);
+                        console.info("api key saved in ~/" + this._configFilename);
+                    });
+                }
+                else
+                {
+                    this._doExport(this._options);
+                }
+            }
+            else if (this._options.code)
+            {
+                if (!this._isApiKeyDefined())
+                {
+                    console.error("NO CONFIG FOUND!");
+                    console.info("paste your apikey:");
+
+                    prompt.get(["apikey"], (err, result) =>
+                    {
+                        this._cfg.apikey = result.apikey;
+                        this._cfg.save();
+                        this._doCodeExport(this._options);
+                        console.info("api key saved in ~/" + this._configFilename);
+                    });
+                }
+                else
+                {
+                    this._doCodeExport(this._options);
+                }
+            }
+            else
+            {
+                const errMessage = "neither --export nor --code defined with correct parameters";
+                console.error(errMessage);
+            }
+        }
+    }
+
+    /**
+     * Returns true if run directly via node,
+     * returns false if required as module
+     *
+     * https://stackoverflow.com/questions/6398196/detect-if-called-through-require-or-directly-by-command-line
+     */
+    _isRunAsCli()
+    {
+        const pathToThisFile = resolve(fileURLToPath(import.meta.url));
+        const pathPassedToNode = resolve(process.argv[1]);
+        return pathToThisFile.includes(pathPassedToNode);
+    }
+
+    _download(uri, filename, callback)
+    {
+        fetch(uri, { "method": "HEAD" })
+            .then((res) =>
+            {
+                console.debug("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
+                fetch(uri, { "method": "GET" })
+                    .then(x => x.arrayBuffer())
+                    .then(x => fs.writeFile(filename, Buffer.from(x), callback));
+            });
+    };
+
+    _doExport(options, onFinished, onError)
+    {
+
+        let queryParams = "";
+
+        // check for no-index option, which omits the index file
+        if (options["no-index"] !== undefined)
+        {
+            queryParams += "removeIndexHtml=1&";
+        }
+
+        if (options["hideMadeWithCables"] !== undefined)
+        {
+            queryParams += "hideMadeWithCables=true&";
+        }
+
+        if (options["combine-js"] !== undefined)
+        {
+            queryParams += "combineJS=true&";
+        }
+
+        if (options["skip-backups"] !== undefined)
+        {
+            queryParams += "skipBackups=true&";
+        }
+
+        if (options["no-subdirs"] !== undefined)
+        {
+            queryParams += "flat=true&";
+        }
+
+        if (options["no-minify"] !== undefined)
+        {
+            queryParams += "minify=false&";
+        }
+
+        const assetExport = options["assets"];
+        if (assetExport !== undefined && this._assetExportOptions.includes(assetExport))
+        {
+            queryParams += `assets=${options["assets"]}&`;
+        }
+        else
+        {
+            queryParams += "assets=auto";
+        }
+
+        // check for json filename option to specify the json filename
+        let jsonFn = options["json-filename"];
+        if (jsonFn)
+        {
+            jsonFn = this.stripExtension(jsonFn);
+            queryParams += "jsonName=" + jsonFn + "&";
+        }
+
+        let cablesUrl = this._baseUrl;
+        const url = cablesUrl + "/api/project/" + options.export + "/export?" + queryParams;
+
+        const callback = (response) =>
+        {
+            const tempFile = basename(response.path) + ".zip";
+            this._download(cablesUrl + response.path, tempFile, () =>
+            {
+                console.info("download finished... ", tempFile);
 
                 let finalDir = path.join(process.cwd(), basename(response.path));
                 if (options.destination !== undefined)
@@ -208,17 +278,17 @@ function doExport(options, onFinished, onError)
 
                 if (!options["no-extract"])
                 {
-                    console.log("extracting to " + finalDir);
+                    console.info("extracting to " + finalDir);
                     extract(tempFile, { dir: finalDir })
                         .then(() =>
                         {
-                            console.log("finished...");
+                            console.info("finished...");
                             if (onFinished) onFinished(finalDir);
                             fs.unlinkSync(tempFile);
                         })
                         .catch((err) =>
                             {
-                                console.log(err);
+                                console.error(err);
                                 if (onError)
                                 {
                                     onError(err);
@@ -229,348 +299,268 @@ function doExport(options, onFinished, onError)
                 else
                 {
                     const finalFilename = finalDir + basename(response.path) + ".zip";
-                    fs.rename(tempFile, finalFilename, function ()
+                    fs.rename(tempFile, finalFilename, () =>
                     {
                         if (onFinished) onFinished(finalFilename);
                     });
                 }
             });
 
-    }
-
-    console.log("requesting export...");
-    const reqOptions =
-        {
-            headers:
-                {
-                    "apikey": cfg.apikey,
-                },
         };
-    fetch(url, reqOptions)
-        .then((response) =>
-        {
-            if (!response.ok || response.status !== 200)
-            {
-                let errMessage = "";
-                switch (response.status)
-                {
-                case 500:
-                    errMessage = "unknown error, maybe try again";
-                    break;
-                case 404:
-                    errMessage = "unknown project, check patchid: " + options.export;
-                    break;
-                case 401:
-                    errMessage = "insufficient rights for project export";
-                    break;
-                case 400:
-                    errMessage = "invalid api key";
-                    break;
-                default:
-                    errMessage = "invalid response code: " + response.status;
-                    break;
-                }
-                throw new Error(errMessage);
-            }
-            return response;
-        })
-        .then((response) => { return response.json(); })
-        .then(callback)
-        .catch((e) =>
-        {
-            console.log("ERROR:", e.message);
-            if (onError)
-            {
-                onError(e.message);
-            }
-        });
 
-}
+        console.info("requesting export...");
+        console.info(`downloading from ${url}...`);
 
-function doCodeExport(options, onFinished, onError)
-{
-    let cablesUrl = "https://cables.gl";
-    if (options["dev"] !== undefined)
-    {
-        cablesUrl = "https://dev.cables.gl";
+        this._doFetch(url, "json")
+            .then(callback)
+            .catch((errMessage) =>
+            {
+                if (onError)
+                {onError(errMessage);}
+            });
     }
 
-    const patchIds = options.code;
-    const url = cablesUrl + "/api/projects/" + patchIds + "/export_code";
-
-    function callback(response)
+    _doCodeExport(options, onFinished, onError)
     {
+        let cablesUrl = this._baseUrl;
+        const patchIds = options.code;
+        const url = cablesUrl + "/api/projects/" + patchIds + "/export_code";
 
-        console.log("download finished... ");
-
-        let finalDir = process.cwd();
-        if (options.destination !== undefined)
-        { // flag "-d" is set
-            if (options.destination && options.destination.length > 0)
-            { // folder name passed after flag
-                if (path.isAbsolute(options.destination))
-                {
-                    finalDir = options.destination;
+        const callback = (response) =>
+        {
+            console.info("download finished... ");
+            let finalDir = process.cwd();
+            if (options.destination !== undefined)
+            { // flag "-d" is set
+                if (options.destination && options.destination.length > 0)
+                { // folder name passed after flag
+                    if (path.isAbsolute(options.destination))
+                    {
+                        finalDir = options.destination;
+                    }
+                    else
+                    {
+                        finalDir = path.normalize(path.join(process.cwd(), options.destination)); // use custom directory
+                    }
                 }
                 else
                 {
-                    finalDir = path.normalize(path.join(process.cwd(), options.destination)); // use custom directory
+                    finalDir = path.join(process.cwd(), "patch/js"); // use directory "patch"
                 }
             }
-            else
+
+            const finalFilename = path.join(finalDir, "/ops.js");
+            console.info("saving to " + finalFilename + "...");
+            mkdirp.sync(finalDir);
+            fs.writeFileSync(finalFilename, response);
+            console.info("finished...");
+            if (onFinished) onFinished(finalFilename);
+        };
+
+        console.info("requesting export...");
+        console.info("downloading from", url, "...");
+
+        this._doFetch(url, "text")
+            .then(callback)
+            .catch((errMessage) =>
             {
-                finalDir = path.join(process.cwd(), "patch/js"); // use directory "patch"
-            }
-        }
-
-        const finalFilename = path.join(finalDir, "/ops.js");
-        console.log("saving to " + finalFilename + "...");
-        mkdirp(finalDir);
-        fs.writeFileSync(finalFilename, response);
-        console.log("finished...");
-
-        if (onFinished) onFinished(finalFilename);
-
+                if (onError)
+                {onError(errMessage);}
+            });
     }
 
-    console.log("requesting export...");
-    console.log("downloading from", url, "...");
+    async _doFetch(url, format)
+    {
+        const reqOptions = { headers: { "apikey": this._cfg.apikey } };
+        const response = await fetch(url, reqOptions);
 
-    const reqOptions =
+        if (!response.ok || response.status !== 200)
         {
-            headers:
-                {
-                    "apikey": cfg.apikey,
-                },
-        };
-    fetch(url, reqOptions)
-        .then((response) =>
-        {
-            if (!response.ok || response.status !== 200)
+            let errMessage;
+            switch (response.status)
             {
-                let errMessage = "";
-                switch (response.status)
-                {
-                case 500:
-                    errMessage = "unknown error, maybe try again";
-                    break;
-                case 404:
-                    errMessage = "unknown project, check patchid: " + options.code;
-                    break;
-                case 401:
-                    errMessage = "insufficient rights for project export";
-                    break;
-                case 400:
-                    errMessage = "invalid api key";
-                    break;
-                default:
-                    errMessage = "invalid response code: " + response.status;
-                    break;
-                }
-                throw new Error(errMessage);
+            case 500:
+                errMessage = "unknown error, maybe try again";
+                break;
+            case 404:
+                errMessage = "unknown project, check patchid: " + this._options.code;
+                break;
+            case 401:
+                errMessage = "insufficient rights for project export";
+                break;
+            case 400:
+                errMessage = "invalid api key";
+                break;
+            default:
+                errMessage = "invalid response\n";
+                errMessage += "code: " + response.status + "\n";
+                errMessage += "body: " + await response.text();
+                break;
             }
-            return response;
-        })
-        .then(function (response) {
-            return response.text();
-        })
-        .then(callback)
-        .catch((e) =>
+            console.error("ERROR:", errMessage);
+            throw new Error(errMessage);
+        }
+
+        let data = "";
+        if (format === "json")
         {
-            console.log("ERROR:", e.message);
+            data = await response.json();
+        }
+        else
+        {
+            data = await response.text();
+        }
+        return data;
+    }
+
+    /**
+     * Removes the file-extension from a file, e.g. "foo.json" -> `foo`
+     * @param {string} filename - The filename to strip the extension from
+     * @returns {string|undefined} - The filename without extension or undefined if filename is undefined
+     */
+    stripExtension(filename)
+    {
+        if (filename)
+        {
+            const lastDotIndex = filename.lastIndexOf(".");
+            if (lastDotIndex > -1 && lastDotIndex < filename.length - 1)
+            {
+                return filename.substring(0, lastDotIndex);
+            }
+            return filename;
+        }
+    }
+
+    /**
+     * Checks if the api key was found in the config file
+     */
+    _isApiKeyDefined()
+    {
+        return this._cfg && this._cfg.apikey;
+    }
+
+    export(options, onFinished, onError)
+    {
+        if (!options || !options.patchId)
+        {
+            const errMessage = "no options set!";
             if (onError)
             {
-                onError(e.message);
+                onError(errMessage);
             }
-        });
-}
-
-//---------
-
-const cfg = require("home-config")
-    .load(configFilename);
-
-if (isRunAsCli())
-{
-    if (options.export)
-    {
-        if (!isApiKeyDefined())
+            return;
+        }
+        if (options.apiKey)
         {
-            console.log("NO CONFIG FOUND!");
-            console.log("paste your apikey:");
+            this._cfg.apikey = options.apiKey;
+        }
 
-            prompt.get(["apikey"], function (err, result)
-            {
-                cfg.apikey = result.apikey;
-                cfg.save();
-                doExport(options);
-                console.log("api key saved in ~/" + configFilename);
-            });
+        options["combine-js"] = options.combineJs;
+        options["no-extract"] = options.noExtract;
+
+        if (options.dev)
+        {
+            options["dev"] = options.dev;
+        }
+        if (options.noIndex)
+        {
+            options["no-index"] = options.noIndex;
+        }
+        if (options.hideMadeWithCables)
+        {
+            options["hideMadeWithCables"] = options.hideMadeWithCables;
+        }
+        if (options.jsonFilename)
+        {
+            options["json-filename"] = options.jsonFilename;
+        }
+
+        if (options.skipBackups)
+        {
+            options["skip-backups"] = options.skipBackups;
+        }
+
+        if (options.noSubdirs)
+        {
+            options["no-subdirs"] = options.noSubdirs;
+        }
+
+        if (options.noMinify)
+        {
+            options["no-minify"] = options.noMinify;
+        }
+
+        if (options.assets && this._assetExportOptions.includes(options.assets))
+        {
+            options["assets"] = options.assets;
         }
         else
         {
-            doExport(options);
+            options["assets"] = "auto";
         }
-    }
-    else if (options.code)
-    {
-        if (!isApiKeyDefined())
-        {
-            console.log("NO CONFIG FOUND!");
-            console.log("paste your apikey:");
 
-            prompt.get(["apikey"], function (err, result)
+        if (!this._cfg.apikey)
+        {
+            if (onError)
             {
-                cfg.apikey = result.apikey;
-                cfg.save();
-                doCodeExport(options);
-                console.log("api key saved in ~/" + configFilename);
-            });
+                onError("API key needed!");
+            }
+            return;
         }
-        else
-        {
-            doCodeExport(options);
-        }
+        options.export = options.patchId; // bring it in the same format as the cli-arguments
+        this._doExport(options, onFinished, onError);
     }
-    else
+
+    code(options, onFinished, onError)
     {
-        const errMessage = "neither --export nor --code defined with correct parameters";
-        console.error(errMessage);
+        if (!options || !options.patchId)
+        {
+            const errMessage = "no options set!";
+            if (onError)
+            {
+                onError(errMessage);
+            }
+            return;
+        }
+        if (options.apiKey)
+        {
+            this._cfg.apikey = options.apiKey;
+        }
+
+        if (options.dev)
+        {
+            options["dev"] = options.dev;
+        }
+
+        if (!this._cfg.apikey)
+        {
+            if (onError)
+            {
+                onError("API key needed!");
+            }
+            return;
+        }
+        options.code = options.patchId; // bring it in the same format as the cli-arguments
+        this._doCodeExport(options, onFinished, onError);
     }
 }
 
-/**
- * Removes the file-extension from a file, e.g. "foo.json" -> `foo`
- * @param {string} filename - The filename to strip the extension from
- * @returns {string|undefined} - The filename without extension or undefined if filename is undefined
- */
-function stripExtension(filename)
+class CliExport
 {
-    if (filename)
+    constructor()
     {
-        const lastDotIndex = filename.lastIndexOf(".");
-        if (lastDotIndex > -1 && lastDotIndex < filename.length - 1)
-        {
-            return filename.substring(0, lastDotIndex);
-        }
-        return filename;
+        this._cli = new CablesCli();
+    }
+
+    export(options, onFinished, onError)
+    {
+        return this._cli.export(options, onFinished, onError);
+    }
+
+    code(options, onFinished, onError)
+    {
+        return this._cli.code(options, onFinished, onError);
     }
 }
 
-/**
- * Checks if the api key was found in the config file
- */
-function isApiKeyDefined()
-{
-    return cfg && cfg.apikey;
-}
-
-function doExportWithParams(options, onFinished, onError)
-{
-    if (!options || !options.patchId)
-    {
-        const errMessage = "no options set!";
-        if (onError)
-        {
-            onError(errMessage);
-        }
-        return;
-    }
-    if (options.apiKey)
-    {
-        cfg.apikey = options.apiKey;
-    }
-
-    options["combine-js"] = options.combineJs;
-    options["no-extract"] = options.noExtract;
-
-    if (options.dev)
-    {
-        options["dev"] = options.dev;
-    }
-    if (options.noIndex)
-    {
-        options["no-index"] = options.noIndex;
-    }
-    if (options.hideMadeWithCables)
-    {
-        options["hideMadeWithCables"] = options.hideMadeWithCables;
-    }
-    if (options.jsonFilename)
-    {
-        options["json-filename"] = options.jsonFilename;
-    }
-
-    if (options.skipBackups)
-    {
-        options["skip-backups"] = options.skipBackups;
-    }
-
-    if (options.noSubdirs)
-    {
-        options["no-subdirs"] = options.noSubdirs;
-    }
-
-    if (options.noMinify)
-    {
-        options["no-minify"] = options.noMinify;
-    }
-
-    if (options.assets && assetExportOptions.includes(options.assets))
-    {
-        options["assets"] = options.assets;
-    }
-    else
-    {
-        options["assets"] = "auto";
-    }
-
-    if (!cfg.apikey)
-    {
-        if (onError)
-        {
-            onError("API key needed!");
-        }
-        return;
-    }
-    options.export = options.patchId; // bring it in the same format as the cli-arguments
-    doExport(options, onFinished, onError);
-}
-
-function doCodeExportWithParams(options, onFinished, onError)
-{
-    if (!options || !options.patchId)
-    {
-        const errMessage = "no options set!";
-        if (onError)
-        {
-            onError(errMessage);
-        }
-        return;
-    }
-    if (options.apiKey)
-    {
-        cfg.apikey = options.apiKey;
-    }
-
-    if (options.dev)
-    {
-        options["dev"] = options.dev;
-    }
-
-    if (!cfg.apikey)
-    {
-        if (onError)
-        {
-            onError("API key needed!");
-        }
-        return;
-    }
-    options.code = options.patchId; // bring it in the same format as the cli-arguments
-    doCodeExport(options, onFinished, onError);
-}
-
-module.exports = {
-    export: doExportWithParams,
-    mulit: doCodeExportWithParams,
-};
+export default new CliExport();

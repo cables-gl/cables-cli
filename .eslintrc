@@ -27,6 +27,7 @@
         "chroma":true,
         "QRCode":true,
         "moment":true,
+        "marked": true,
         "Ops":true,
         "ColorRick":true,
         "introJs": true,
@@ -40,13 +41,13 @@
         "socketClusterClient": true,
         "incrementStartup": true,
         "mmd": true,
-        "getHandleBarHtml": true,
-        "fromDust": true,
-        "executeFunctionByName": true,
         "platform": true
     },
     "env": {
         "browser": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2020
     },
     "rules": {
         "object-property-newline": "error",
@@ -148,6 +149,7 @@
         "no-restricted-properties": 0,
         "import/prefer-default-export": 0,
         "import/no-default-export": 0,
+        "import/extensions": 0,
         "prefer-arrow-callback": 0,
         "arrow-body-style": [ "error", "always"],
         "new-cap": 0,
@@ -160,6 +162,9 @@
                 "next": "*"
             }
         ],
-        "no-return-await": 0
+        "no-return-await": 0,
+        "no-multiple-empty-lines": 0,
+        "no-mixed-operators":0,
+        "no-inner-declarations":0
     }
 }

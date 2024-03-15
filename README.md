@@ -38,14 +38,14 @@ cables --export [CABLES PATCH ID] -d [DESTINATION]
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
 
 ```shell
-https://cables.gl/edit/rTVxvC
-—> rTVxvC is the patch ID
+https://cables.gl/edit/pQpie9
+—> pQpie9 is the patch ID
 ```
 
 Example:    
 
 ```shell
-cables --export rTVxvC -d 'my-patch'
+cables --export pQpie9 -d "my-patch"
 ```
 
 **Please note:** Running the command will overwrite  everything in the `my-patch`-folder.
@@ -76,46 +76,48 @@ npm install --save @cables/cables
 Export:  
 
 ```javascript
+import cables from "@cables/cables";
 cables.export(options, onFinished, onError);
 ```
+(if you need a version supporting `require` download a version before 0.13.0)
 
 Simple Export Example:  
 
 ```javascript
-var cables = require('@cables/cables');
+import cables from "@cables/cables";
 
 cables.export({
-  patchId: 'rTVxvC',
-  destination: 'patch' 
+  patchId: "pQpie9",
+  destination: "patch" 
 }, onFinished, onError);
 
 function onFinished() {
-  console.log('Export finished!');
+  console.log("Export finished!");
 }
 
 function onError(err) {
-  console.log('There was an error exporting your patch :/');
+  console.log("There was an error exporting your patch :/");
 }
 ```
 
 Advanced Export Example:  
 
 ```javascript
-var cables = require('@cables/cables');
+import cables from "@cables/cables";
 
 cables.export({
-  patchId: 'rTVxvC',
-  destination: 'patch',
+  patchId: "pQpie9",
+  destination: "patch",
   noIndex: true,
-  jsonFilename: 'my-patch' /* patch will be stored as my-patch.json */
+  jsonFilename: "my-patch" /* patch will be stored as my-patch.json */
 }, onFinished, onError);
 
 function onFinished(filename) {
-  console.log('Export finished: '+filename);
+  console.log("Export finished: "+filename);
 }
 
 function onError(err) {
-  console.log('There was an error exporting your patch :/');
+  console.log("There was an error exporting your patch :/");
 }
 ```
 
@@ -130,23 +132,23 @@ the patches individually (do NOT use `--combine-js`), load libs and `cables.min.
 as provided in the individual `index.html` and swap out `ops.js` with this download.
 
 ```shell
-cables -C -d 'public' rTVxvC
+cables -C -d "public" pQpie9
 ```
 
 ```javascript
-var cables = require('@cables/cables');
+var cables = require("@cables/cables");
 
 cables.code({
-  code: 'one,two,thee',
-  destination: 'patch' 
+  code: "one,two,thee",
+  destination: "patch" 
 }, onFinished, onError);
 
 function onFinished() {
-  console.log('Export finished!');
+  console.log("Export finished!");
 }
 
 function onError(err) {
-  console.log('There was an error exporting your patch :/');
+  console.log("There was an error exporting your patch :/");
 }
 ```
 
@@ -154,8 +156,8 @@ Use in package.json:
 ```json
 {
   "scripts": {
-      "patchup": "cables -c -i -d 'public' -e rTVxvC",
-      "code": "cables -C -d 'public' rTVxvC"
+      "patchup": "cables -c -i -d 'public' -e pQpie9",
+      "code": "cables -C -d 'public' pQpie9"
   }
 }
 ```
