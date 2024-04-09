@@ -76,15 +76,14 @@ npm install --save @cables/cables
 Export:  
 
 ```javascript
-import cables from "@cables/cables";
+const cables = require('@cables/cables');
 cables.export(options, onFinished, onError);
 ```
-(if you need a version supporting `require` download a version before 0.13.0)
 
 Simple Export Example:  
 
 ```javascript
-import cables from "@cables/cables";
+const cables = require('@cables/cables');
 
 cables.export({
   patchId: "pQpie9",
@@ -103,7 +102,7 @@ function onError(err) {
 Advanced Export Example:  
 
 ```javascript
-import cables from "@cables/cables";
+const cables = require('@cables/cables');
 
 cables.export({
   patchId: "pQpie9",

@@ -1,16 +1,15 @@
-import path from "path";
-import commandLineArgs from "command-line-args";
-import fs from "fs";
-import basename from "basename";
-import prompt from "prompt";
-import extract from "extract-zip";
-import fetch from "node-fetch";
-import mkdirp from "mkdirp";
-import homeConfig from "home-config";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
+#! /usr/bin/env node
+const path = require("path");
+const process = require("process");
+const commandLineArgs = require("command-line-args");
+const fs = require("fs");
+const basename = require("basename");
+const prompt = require("prompt");
+const extract = require("extract-zip");
+const fetch = require("node-fetch");
+const mkdirp = require("mkdirp");
 
-const { load } = homeConfig;
+const { load } = require("home-config");
 
 class CablesCli
 {
@@ -171,13 +170,10 @@ class CablesCli
      * Returns true if run directly via node,
      * returns false if required as module
      *
-     * https://stackoverflow.com/questions/6398196/detect-if-called-through-require-or-directly-by-command-line
      */
     _isRunAsCli()
     {
-        const pathToThisFile = resolve(fileURLToPath(import.meta.url));
-        const pathPassedToNode = resolve(process.argv[1]);
-        return pathToThisFile.includes(pathPassedToNode);
+        return require.main === module;
     }
 
     _download(uri, filename, callback)
@@ -387,6 +383,8 @@ class CablesCli
                 break;
             case 401:
                 errMessage = "insufficient rights for project export";
+                errMessage += "code: " + response.status + "\n";
+                errMessage += "body: " + await response.text();
                 break;
             case 400:
                 errMessage = "invalid api key";
@@ -397,7 +395,7 @@ class CablesCli
                 errMessage += "body: " + await response.text();
                 break;
             }
-            console.error("ERROR:", errMessage);
+            console.error("ERROR:", errMessage, reqOptions);
             throw new Error(errMessage);
         }
 
@@ -563,4 +561,4 @@ class CliExport
     }
 }
 
-export default new CliExport();
+module.exports = new CliExport();
