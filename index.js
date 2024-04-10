@@ -104,20 +104,21 @@ class CablesCli
             },
         ];
 
-        this._options = commandLineArgs(this._cmdOptions);
-
-        if (this._options.dev !== undefined)
-        {
-            this._baseUrl = this._devUrl;
-        }
-
-        if (this._options.url) this._baseUrl = this._options.url;
         if (this._baseUrl.includes("local")) process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
         this._cfg = load(this._configFilename);
 
         if (this._isRunAsCli())
         {
+            this._options = commandLineArgs(this._cmdOptions);
+
+            if (this._options.dev !== undefined)
+            {
+                this._baseUrl = this._devUrl;
+            }
+
+            if (this._options.url) this._baseUrl = this._options.url;
+
             if (this._options.export)
             {
                 if (!this._isApiKeyDefined())

@@ -1,11 +1,11 @@
 {
   "name": "@cables/cables",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "cables command line tool",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js -c -a all -d test/export/ -e mYOtL5",
-    "code": "node index.js -D -d test/code/ -C mYOtL5"
+    "test": "node index.js -D -a all -d test/ -e FO9IG3",
+    "code": "node index.js -d test/js/ -C FO9IG3,lntUQx,TctR5r"
   },
   "bin": {
     "cables": "./index.js"
