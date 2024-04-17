@@ -99,6 +99,11 @@ class CablesCli
                 type: Boolean,
             },
             {
+                name: "sourcemaps",
+                alias: "M",
+                type: Boolean,
+            },
+            {
                 name: "url",
                 type: String,
             },
@@ -223,6 +228,11 @@ class CablesCli
         if (options["no-minify"] !== undefined)
         {
             queryParams += "minify=false&";
+        }
+
+        if (options["sourcemaps"] !== undefined)
+        {
+            queryParams += "sourcemaps=true&";
         }
 
         const assetExport = options["assets"];
@@ -482,6 +492,11 @@ class CablesCli
         if (options.noSubdirs)
         {
             options["no-subdirs"] = options.noSubdirs;
+        }
+
+        if (options.sourcemaps)
+        {
+            options["sourcemaps"] = options.sourcemaps;
         }
 
         if (options.noMinify)

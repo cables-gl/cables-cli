@@ -62,7 +62,8 @@ cables --export pQpie9 -d "my-patch"
 - `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
 - `-b` / `--skip-backups`: do not include backup files in patch export
 - `-f` / `--no-subdirs`: put js and assets into same directory as `index.html` ("flat export")
-- `-m` / `--no-minify`: do not minify code ("flat export")
+- `-m` / `--no-minify`: do not minify code
+- `-M` / `--sourcemaps`: if code is minified, add sourcemaps to the export
 - `-D` / `--dev`: export from dev server 
 
 ## Use as a module
