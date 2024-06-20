@@ -55,6 +55,7 @@ cables --export pQpie9 -d "my-patch"
 - `-e` / `--export` `[PATCH ID]`: Export patch
 - `-C` / `--code` `[PATCH ID],[PATCH ID],[PATCH ID]`: Export ops code for patch(es)
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
+- `-g` / `--minify-glsl` : Minifies shader-code in `.frag` and `.att` attachments
 - `-i` / `--no-index` : Removes the _index.html_ file when set
 - `-x` / `--no-extract` : do not extract the downloaded zip file
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 

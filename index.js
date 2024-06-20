@@ -104,6 +104,11 @@ class CablesCli
                 type: Boolean,
             },
             {
+                name: "minify-glsl",
+                alias: "g",
+                type: Boolean,
+            },
+            {
                 name: "url",
                 type: String,
             },
@@ -235,10 +240,15 @@ class CablesCli
             queryParams += "sourcemaps=true&";
         }
 
+        if (options["minify-glsl"] !== undefined)
+        {
+            queryParams += "minifyGlsl=true&";
+        }
+
         const assetExport = options["assets"];
         if (assetExport !== undefined && this._assetExportOptions.includes(assetExport))
         {
-            queryParams += `assets=${options["assets"]}&`;
+            queryParams += "assets=" + options["assets"] + "&";
         }
         else
         {
@@ -316,7 +326,7 @@ class CablesCli
         };
 
         console.info("requesting export...");
-        console.info(`downloading from ${url}...`);
+        console.info("downloading from ",  url, "...");
 
         this._doFetch(url, "json")
             .then(callback)
@@ -502,6 +512,10 @@ class CablesCli
         if (options.noMinify)
         {
             options["no-minify"] = options.noMinify;
+        }
+
+        if(options.minifyGlsl) {
+            options["minify-glsl"] = options.minifyGlsl;
         }
 
         if (options.assets && this._assetExportOptions.includes(options.assets))
