@@ -114,8 +114,6 @@ class CablesCli
             },
         ];
 
-        if (this._baseUrl.includes("local")) process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
         this._cfg = load(this._configFilename);
 
         if (this._isRunAsCli())
@@ -332,8 +330,7 @@ class CablesCli
             .then(callback)
             .catch((errMessage) =>
             {
-                if (onError)
-                {onError(errMessage);}
+                if (onError) onError(errMessage);
             });
     }
 
@@ -388,6 +385,10 @@ class CablesCli
 
     async _doFetch(url, format)
     {
+        if (url.includes("local")) {
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+        }
+
         const reqOptions = { headers: { "apikey": this._cfg.apikey } };
         const response = await fetch(url, reqOptions);
 
@@ -402,8 +403,13 @@ class CablesCli
             case 404:
                 errMessage = "unknown project, check patchid: " + this._options.code;
                 break;
+            case 403:
+                errMessage = "insufficient rights for project export, or over quota\n";
+                errMessage += "code: " + response.status + "\n";
+                errMessage += "body: " + await response.text();
+                break;
             case 401:
-                errMessage = "insufficient rights for project export";
+                errMessage = "insufficient rights for project export\n";
                 errMessage += "code: " + response.status + "\n";
                 errMessage += "body: " + await response.text();
                 break;
