@@ -266,6 +266,14 @@ class CablesCli
 
         const callback = (response) =>
         {
+            if (response.log && Array.isArray(response.log))
+            {
+                const relevantEntries = response.log.filter((logEntry) => { return !!logEntry.level;});
+                relevantEntries.forEach((logEntry) =>
+                {
+                    console.info('\x1b[33m%s\x1b[0m', "[" + logEntry.level + "] " +  logEntry.text);
+                });
+            }
             const tempFile = basename(response.path) + ".zip";
             this._download(cablesUrl + response.path, tempFile, () =>
             {
@@ -324,7 +332,7 @@ class CablesCli
         };
 
         console.info("requesting export...");
-        console.info("downloading from ",  url, "...");
+        console.info("downloading from ", url, "...");
 
         this._doFetch(url, "json")
             .then(callback)
@@ -385,7 +393,8 @@ class CablesCli
 
     async _doFetch(url, format)
     {
-        if (url.includes("local")) {
+        if (url.includes("local"))
+        {
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
 
@@ -520,7 +529,8 @@ class CablesCli
             options["no-minify"] = options.noMinify;
         }
 
-        if(options.minifyGlsl) {
+        if (options.minifyGlsl)
+        {
             options["minify-glsl"] = options.minifyGlsl;
         }
 
