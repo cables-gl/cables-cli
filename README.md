@@ -66,6 +66,7 @@ cables --export pQpie9 -d "my-patch"
 - `-m` / `--no-minify`: do not minify code
 - `-M` / `--sourcemaps`: if code is minified, add sourcemaps to the export
 - `-D` / `--dev`: export from dev server 
+- `--api-key`: define apikey on the command line, overriding anything that might be in `~/.cablesrc`
 
 ## Use as a module
 

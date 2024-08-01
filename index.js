@@ -112,6 +112,10 @@ class CablesCli
                 name: "url",
                 type: String,
             },
+            {
+                name: "api-key",
+                type: String
+            }
         ];
 
         this._cfg = load(this._configFilename);
@@ -119,6 +123,10 @@ class CablesCli
         if (this._isRunAsCli())
         {
             this._options = commandLineArgs(this._cmdOptions);
+
+            if(this._options["api-key"]) {
+                this._cfg.apikey = this._options["api-key"];
+            }
 
             if (this._options.dev !== undefined)
             {
