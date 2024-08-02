@@ -39,6 +39,11 @@ class CablesCli
                 type: String,
             },
             {
+                name: "patch",
+                alias: "p",
+                type: Boolean,
+            },
+            {
                 name: "src",
                 alias: "s",
                 type: String,
@@ -114,8 +119,8 @@ class CablesCli
             },
             {
                 name: "api-key",
-                type: String
-            }
+                type: String,
+            },
         ];
 
         this._cfg = load(this._configFilename);
@@ -124,7 +129,8 @@ class CablesCli
         {
             this._options = commandLineArgs(this._cmdOptions);
 
-            if(this._options["api-key"]) {
+            if (this._options["api-key"])
+            {
                 this._cfg.apikey = this._options["api-key"];
             }
 
@@ -135,7 +141,7 @@ class CablesCli
 
             if (this._options.url) this._baseUrl = this._options.url;
 
-            if (this._options.export)
+            if (this._options.export || this._options.patch)
             {
                 if (!this._isApiKeyDefined())
                 {
@@ -269,6 +275,11 @@ class CablesCli
             queryParams += "jsonName=" + jsonFn + "&";
         }
 
+        if (options.patch)
+        {
+            queryParams += "type=standalone&";
+        }
+
         let cablesUrl = this._baseUrl;
         const url = cablesUrl + "/api/project/" + options.export + "/export?" + queryParams;
 
@@ -279,7 +290,7 @@ class CablesCli
                 const relevantEntries = response.log.filter((logEntry) => { return !!logEntry.level;});
                 relevantEntries.forEach((logEntry) =>
                 {
-                    console.info('\x1b[33m%s\x1b[0m', "[" + logEntry.level + "] " +  logEntry.text);
+                    console.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
                 });
             }
             const tempFile = basename(response.path) + ".zip";

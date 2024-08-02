@@ -52,8 +52,9 @@ cables --export pQpie9 -d "my-patch"
 
 #### Arguments
 
-- `-e` / `--export` `[PATCH ID]`: Export patch
+- `-e` / `--export` `[PATCH ID]`: Export patch, to use on a webserver
 - `-C` / `--code` `[PATCH ID],[PATCH ID],[PATCH ID]`: Export ops code for patch(es)
+- `-p` / `--patch` `[PATCH ID]`: Export patch, to use in [cables standalone](https://cables.gl/standalone)
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
 - `-g` / `--minify-glsl` : Minifies shader-code in `.frag` and `.att` attachments
 - `-i` / `--no-index` : Removes the _index.html_ file when set
