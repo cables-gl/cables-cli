@@ -7,23 +7,23 @@ _Command line tool to export and download [cables](https://cables.gl) patches fr
 ```
              C   A   B   L   E   S   >>>  ___:_ _
        _ _:_______________ _____________ /   |\   _ _______
-          |  _           /\\_           \    |\\.  _)     /\       ______         
-    _____ | (/)        _/\\\(_______    /    |\\| /    __/\\\     /     /\    
-   /   _/\_      _    /_\\\/_\\\\ _/   /     |\\|/     \_\\\/___ /     /\\\ 
+          |  _           /\\_           \    |\\.  _)     /\       ______
+    _____ | (/)        _/\\\(_______    /    |\\| /    __/\\\     /     /\
+   /   _/\_      _    /_\\\/_\\\\ _/   /     |\\|/     \_\\\/___ /     /\\\
   /   /_\\|_     |\     \\(    /\ \   /_    _:\\/__ /\_/       /_\   _/_\\/___
 _/   /(     \    |_\     \__  /_\\_)    \         (_          /   \          /\
 \           _\   \___     _/             \         /         /     \_       /\\\
  \_________(    _|\\\\     \_ ___________/   _    /_________/       /      /\\\/
   \\\\\\\\|_____)\\\        |\\\\\/         (/)  /\\\\\\\/                /_\\/
-   \\\\\\\\\\\\\\\\\\_______:\\.\/______________/\\\\\\\\\_________________(\\ 
+   \\\\\\\\\\\\\\\\\\_______:\\.\/______________/\\\\\\\\\_________________(\\
  _|.._     \\\\\\\)  \\\\\\\\\\| \\\\\\\\\\\\\\\\\\\/     \\\\\\\\\\\\\\\\\\\\
-(_|||_)               \\\\\\\\\|  \\\\\\\\\\\\\\\\\/       \\\\\\\\\\\\\\\\\\( 
- ---|-->> 
+(_|||_)               \\\\\\\\\|  \\\\\\\\\\\\\\\\\/       \\\\\\\\\\\\\\\\\\(
+ ---|-->>
 ```
 
 ## Installation
 
-Run `npm install -g @cables/cables`.  
+Run `npm install -g @cables/cables`.
 Create an API key on [cables.gl/settings](https://cables.gl/settings) —> navigate to `API key` —> press `Generate`.
 When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored in `~/.cablesrc`.
 
@@ -31,7 +31,7 @@ When you first start the tool it will show a prompt for the API key. Once entere
 
 ### Export
 
-To export and download a cables patch into a specific directory  run:  
+To export and download a cables patch into a specific directory  run:
 ```shell
 cables --export [CABLES PATCH ID] -d [DESTINATION]
 ```
@@ -42,7 +42,7 @@ https://cables.gl/edit/pQpie9
 —> pQpie9 is the patch ID
 ```
 
-Example:    
+Example:
 
 ```shell
 cables --export pQpie9 -d "my-patch"
@@ -59,39 +59,38 @@ cables --export pQpie9 -d "my-patch"
 - `-g` / `--minify-glsl` : Minifies shader-code in `.frag` and `.att` attachments
 - `-i` / `--no-index` : Removes the _index.html_ file when set
 - `-x` / `--no-extract` : do not extract the downloaded zip file
-- `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file 
+- `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
 - `-a` / `--assets <auto|all|none>`: export assets of patch, defaults to "auto"
-- `-b` / `--skip-backups`: do not include backup files in patch export
 - `-f` / `--no-subdirs`: put js and assets into same directory as `index.html` ("flat export")
 - `-m` / `--no-minify`: do not minify code
 - `-M` / `--sourcemaps`: if code is minified, add sourcemaps to the export
-- `-D` / `--dev`: export from dev server 
+- `-D` / `--dev`: export from dev server
 - `--api-key`: define apikey on the command line, overriding anything that might be in `~/.cablesrc`
 
 ## Use as a module
 
-Install as dependency:  
+Install as dependency:
 
 ```shell
 npm install --save @cables/cables
 ```
 
-Export:  
+Export:
 
 ```javascript
 const cables = require('@cables/cables');
 cables.export(options, onFinished, onError);
 ```
 
-Simple Export Example:  
+Simple Export Example:
 
 ```javascript
 const cables = require('@cables/cables');
 
 cables.export({
   patchId: "pQpie9",
-  destination: "patch" 
+  destination: "patch"
 }, onFinished, onError);
 
 function onFinished() {
@@ -103,7 +102,7 @@ function onError(err) {
 }
 ```
 
-Advanced Export Example:  
+Advanced Export Example:
 
 ```javascript
 const cables = require('@cables/cables');
@@ -143,7 +142,7 @@ var cables = require("@cables/cables");
 
 cables.code({
   code: "one,two,thee",
-  destination: "patch" 
+  destination: "patch"
 }, onFinished, onError);
 
 function onFinished() {

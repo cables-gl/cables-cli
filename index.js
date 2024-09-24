@@ -89,11 +89,6 @@ class CablesCli
                 type: String,
             },
             {
-                name: "skip-backups",
-                alias: "b",
-                type: Boolean,
-            },
-            {
                 name: "no-subdirs",
                 alias: "f",
                 type: Boolean,
@@ -230,11 +225,6 @@ class CablesCli
         if (options["combine-js"] !== undefined)
         {
             queryParams += "combineJS=true&";
-        }
-
-        if (options["skip-backups"] !== undefined)
-        {
-            queryParams += "skipBackups=true&";
         }
 
         if (options["no-subdirs"] !== undefined)
@@ -526,11 +516,6 @@ class CablesCli
         if (options.jsonFilename)
         {
             options["json-filename"] = options.jsonFilename;
-        }
-
-        if (options.skipBackups)
-        {
-            options["skip-backups"] = options.skipBackups;
         }
 
         if (options.noSubdirs)
