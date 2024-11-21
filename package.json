@@ -8,9 +8,11 @@
         "test": "run-s clean _test",
         "test:cli": "run-s clean _test:cli",
         "test:code": "run-s clean _test:code",
+        "test:patch": "run-s clean _test:patch",
         "_test": "node test.js",
         "_test:cli": "node index.js -D -a all -d test/ -e FO9IG3",
-        "_test:code": "node index.js -d test/js/ -C FO9IG3,lntUQx,TctR5r"
+        "_test:code": "node index.js -d test/js/ -C FO9IG3,lntUQx,TctR5r",
+        "_test:patch": "node index.js -d test/ -p -e FO9IG3"
     },
     "bin": {
         "cables": "./index.js"
