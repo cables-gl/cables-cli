@@ -267,7 +267,7 @@ class CablesCli
 
         if (options.patch)
         {
-            queryParams += "type=standalone&";
+            queryParams += "type=patch&";
         }
 
         let cablesUrl = this._baseUrl;

@@ -1,5 +1,3 @@
-
-
 # cables-cli
 
 _Command line tool to export and download [cables](https://cables.gl) patches from the command line_
@@ -25,16 +23,19 @@ _/   /(     \    |_\     \__  /_\\_)    \         (_          /   \          /\
 
 Run `npm install -g @cables/cables`.
 Create an API key on [cables.gl/settings](https://cables.gl/settings) —> navigate to `API key` —> press `Generate`.
-When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored in `~/.cablesrc`.
+When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored
+in `~/.cablesrc`.
 
 ## Run
 
 ### Export
 
-To export and download a cables patch into a specific directory  run:
+To export and download a cables patch into a specific directory run:
+
 ```shell
 cables --export [CABLES PATCH ID] -d [DESTINATION]
 ```
+
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
 
 ```shell
@@ -48,7 +49,7 @@ Example:
 cables --export pQpie9 -d "my-patch"
 ```
 
-**Please note:** Running the command will overwrite  everything in the `my-patch`-folder.
+**Please note:** Running the command will overwrite everything in the `my-patch`-folder.
 
 #### Arguments
 
@@ -79,47 +80,51 @@ npm install --save @cables/cables
 Export:
 
 ```javascript
-const cables = require('@cables/cables');
+const cables = require("@cables/cables");
 cables.export(options, onFinished, onError);
 ```
 
 Simple Export Example:
 
 ```javascript
-const cables = require('@cables/cables');
+const cables = require("@cables/cables");
 
 cables.export({
-  patchId: "pQpie9",
-  destination: "patch"
+    "patchId": "pQpie9",
+    "destination": "patch"
 }, onFinished, onError);
 
-function onFinished() {
-  console.log("Export finished!");
+function onFinished()
+{
+    console.log("Export finished!");
 }
 
-function onError(err) {
-  console.log("There was an error exporting your patch :/");
+function onError(err)
+{
+    console.log("There was an error exporting your patch :/");
 }
 ```
 
 Advanced Export Example:
 
 ```javascript
-const cables = require('@cables/cables');
+const cables = require("@cables/cables");
 
 cables.export({
-  patchId: "pQpie9",
-  destination: "patch",
-  noIndex: true,
-  jsonFilename: "my-patch" /* patch will be stored as my-patch.json */
+    "patchId": "pQpie9",
+    "destination": "patch",
+    "noIndex": true,
+    "jsonFilename": "my-patch" /* patch will be stored as my-patch.json */
 }, onFinished, onError);
 
-function onFinished(filename) {
-  console.log("Export finished: "+filename);
+function onFinished(filename)
+{
+    console.log("Export finished: " + filename);
 }
 
-function onError(err) {
-  console.log("There was an error exporting your patch :/");
+function onError(err)
+{
+    console.log("There was an error exporting your patch :/");
 }
 ```
 
@@ -141,26 +146,29 @@ cables -C -d "public" pQpie9
 var cables = require("@cables/cables");
 
 cables.code({
-  code: "one,two,thee",
-  destination: "patch"
+    "code": "one,two,thee",
+    "destination": "patch"
 }, onFinished, onError);
 
-function onFinished() {
-  console.log("Export finished!");
+function onFinished()
+{
+    console.log("Export finished!");
 }
 
-function onError(err) {
-  console.log("There was an error exporting your patch :/");
+function onError(err)
+{
+    console.log("There was an error exporting your patch :/");
 }
 ```
 
 Use in package.json:
+
 ```json
 {
-  "scripts": {
-      "patchup": "cables -c -i -d 'public' -e pQpie9",
-      "code": "cables -C -d 'public' pQpie9"
-  }
+    "scripts": {
+        "patchup": "cables -c -i -d 'public' -e pQpie9",
+        "code": "cables -C -d 'public' pQpie9"
+    }
 }
 ```
 
