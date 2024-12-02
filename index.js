@@ -283,8 +283,10 @@ class CablesCli
                     console.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
                 });
             }
+            let downloadUrl = cablesUrl + response.path;
+            if(response.urls && response.urls.downloadUrl && response.urls.downloadUrl.startsWith("http")) downloadUrl = response.urls.downloadUrl;
             const tempFile = basename(response.path) + ".zip";
-            this._download(cablesUrl + response.path, tempFile, () =>
+            this._download(downloadUrl, tempFile, () =>
             {
                 console.info("download finished... ", tempFile);
 
