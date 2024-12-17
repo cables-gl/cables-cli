@@ -1,7 +1,6 @@
 # cables-cli
 
-[npm.org](https://cables.gl/settings](https://www.npmjs.com/package/@cables/cables)
-
+[npm.org](https://www.npmjs.com/package/@cables/cables)
 
 _Command line tool to export and download [cables](https://cables.gl) patches from the command line_
 
