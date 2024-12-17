@@ -21,7 +21,7 @@ _/   /(     \    |_\     \__  /_\\_)    \         (_          /   \          /\
 
 ## Installation
 
-Run `npm install -g @cables/cables`.
+Run `npm install -g @cables/cables`
 
 Create an API key on [cables.gl/settings](https://cables.gl/settings) —> navigate to `API key` —> press `Generate`.
 When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored
@@ -59,7 +59,7 @@ cables --export pQpie9 -d "my-patch"
 - `-p` / `--patch` `[PATCH ID]`: Export patch, to use in [cables standalone](https://cables.gl/standalone)
 - `-d` / `--destination` `[DESTINATION]`: Folder to download the patch to, can either be absolute or relative
 - `-g` / `--minify-glsl` : Minifies shader-code in `.frag` and `.att` attachments
-- `-i` / `--no-index` : Removes the _index.html_ file when set
+- `-i` / `--no-index` : will not include/overwrite _index.html_ in the export
 - `-x` / `--no-extract` : do not extract the downloaded zip file
 - `-j` / `--json-filename` `[JSON FILENAME]` : Define the filename of the patch json file
 - `-c` / `--combine-js` : combine javascript and json into a single patch.js
