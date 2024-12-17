@@ -1,5 +1,8 @@
 # cables-cli
 
+[npm.org](https://cables.gl/settings](https://www.npmjs.com/package/@cables/cables)
+
+
 _Command line tool to export and download [cables](https://cables.gl) patches from the command line_
 
 ```
@@ -16,6 +19,9 @@ _Command line tool to export and download [cables](https://cables.gl) patches fr
 ## Installation
 
 Run `npm install -g @cables/cables`
+
+
+
 
 Create an API key on [cables.gl/settings](https://cables.gl/settings) —> navigate to `API key` —> press `Generate`.
 When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored
