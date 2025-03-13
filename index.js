@@ -277,7 +277,7 @@ class CablesCli
         {
             if (response.log && Array.isArray(response.log))
             {
-                const relevantEntries = response.log.filter((logEntry) => { return !!logEntry.level;});
+                const relevantEntries = response.log.filter((logEntry) => { return logEntry.level === "error";});
                 relevantEntries.forEach((logEntry) =>
                 {
                     console.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
@@ -415,34 +415,42 @@ class CablesCli
         if (!response.ok || response.status !== 200)
         {
             let errMessage;
+            let errorText = "";
+            try {
+                const errorJson = await response.json();
+                errorText = errorJson.msg || JSON.stringify(errorJson);
+            }catch (e) {
+                errorText = await response.json();
+                // use text, see above
+            }
             switch (response.status)
             {
             case 500:
                 errMessage = "unknown error, maybe try again";
                 break;
             case 404:
-                errMessage = "unknown project, check patchid: " + this._options.code;
+                errMessage = "unknown patch, check patchid: " + this._options.export;
                 break;
             case 403:
-                errMessage = "insufficient rights for project export, or over quota\n";
+                errMessage = "insufficient rights for patch export, or over quota\n";
                 errMessage += "code: " + response.status + "\n";
-                errMessage += "body: " + await response.text();
+                errMessage += "body: " + errorText;
                 break;
             case 401:
-                errMessage = "insufficient rights for project export\n";
+                errMessage = "insufficient rights for patch export\n";
                 errMessage += "code: " + response.status + "\n";
-                errMessage += "body: " + await response.text();
+                errMessage += "body: " + errorText;
                 break;
             case 400:
-                errMessage = "invalid api key";
+                errMessage = "no rights to patch, invalid api key";
                 break;
             default:
                 errMessage = "invalid response\n";
                 errMessage += "code: " + response.status + "\n";
-                errMessage += "body: " + await response.text();
+                errMessage += "body: " + errorText;
                 break;
             }
-            console.error("ERROR:", errMessage, reqOptions);
+            console.error("ERROR:", errMessage);
             throw new Error(errMessage);
         }
 
