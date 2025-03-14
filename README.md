@@ -174,4 +174,4 @@ Use in package.json:
 
 ## Further Infos
 
-For more infos on the cables API see [cables API docs](https://docs.cables.gl/api/api.html).
+For more infos on the cables API see [cables API docs](https://cables.gl/docs/9_1_communication/api/api).
