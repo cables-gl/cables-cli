@@ -22,7 +22,7 @@ Run `npm install -g @cables/cables`
 
 
 
-Create an API key on [cables.gl/settings]([https://cables.gl/settings](https://cables.gl/settings#apikey)) —> navigate to `API key` —> press `Generate`.
+Create an API key on [cables.gl/settings](https://cables.gl/settings#apikey) —> navigate to `API key` —> press `Generate`.
 When you first start the tool it will show a prompt for the API key. Once entered your API key will be stored
 in `~/.cablesrc`.
 
