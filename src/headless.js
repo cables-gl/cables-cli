@@ -9,7 +9,7 @@ export class CablesCLIHeadless extends CablesCLIModule
         this._cliOptions = [
             {
                 "name": "headless",
-                "description": "something",
+                "description": "Patchfile from a standalone project or export (.cables)",
                 "type": String,
                 "typeLabel": "{underline file}",
             },
