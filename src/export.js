@@ -98,17 +98,6 @@ export class CablesCLIExport extends CablesCLIModule
                 "description": "Minifies shader-code in .frag and .att attachments",
                 type: Boolean,
             },
-            {
-                name: "url",
-                "description": "Specify URL of cables endpoint to export from (for local development)",
-                type: String,
-                "typeLabel": "URL"
-            },
-            {
-                name: "api-key",
-                "description": "Define apikey on the command line, overriding anything that might be in ~/.cablesrc",
-                type: String,
-            },
         ];
     }
 

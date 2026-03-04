@@ -7,11 +7,43 @@ import { CablesCLI } from "../new.js";
  */
 export class CablesCLIModule
 {
+    static CABLES_URL = new URL("https://cables.gl");
+    static CABLES_DEV_URL = new URL("https://dev.cables.gl");
+
+    static CLI_PARAM_COMMAND = "command";
+
+    static CLI_PARAM_API_KEY = "api-key";
+    static CLI_PARAM_BASE_URL = "url";
+    static CLI_PARAM_HELP = "help";
+
     constructor()
     {
+        this._baseUrl = CablesCLIModule.CABLES_URL;
         this._cliParameters = {};
         this._cliOptions = [];
         this._commandUsage = {};
+        this._globalCliOptions = [
+            {
+                name: CablesCLIModule.CLI_PARAM_BASE_URL,
+                "description": "Specify URL of cables endpoint to export from (for local development)",
+                type: String,
+                "typeLabel": "URL",
+            },
+            {
+                name: CablesCLIModule.CLI_PARAM_API_KEY,
+                "description": "Define apikey on the command line, overriding anything that might be in ~/.cablesrc",
+                type: String,
+            },
+            {
+                "name": CablesCLIModule.CLI_PARAM_COMMAND,
+                "defaultOption": true,
+            },
+            {
+                "name": CablesCLIModule.CLI_PARAM_HELP,
+                "alias": "h",
+                "type": Boolean,
+            },
+        ];
     }
 
     getUsageInfo()
@@ -21,22 +53,36 @@ export class CablesCLIModule
             "header": "Usage:",
             "content": "cables " + (this.getCommandName() || "<command>") + " [options]",
         };
-        const footer = {
-            header: "Options",
-            optionList: options.filter((option) => { return option.name !== "command";}),
+        const localOptions = options.filter(
+            (option) => { return option.name !== CablesCLIModule.CLI_PARAM_COMMAND && !this._globalCliOptions.find((o) => { return o.name === option.name;});});
+        let commandOptions = {};
+        if (localOptions.length > 0)
+        {
+            commandOptions = {
+                "header": "Options:",
+                "optionList": localOptions,
+            };
+        }
+        const globalOptions = {
+            "header": "Global:",
+            "optionList": this._globalCliOptions.filter((option) => { return option.name !== CablesCLIModule.CLI_PARAM_COMMAND;}),
         };
-        return commandLineUsage([header, this._commandUsage, footer]);
+
+
+        return commandLineUsage([header, this._commandUsage, commandOptions, globalOptions]);
     }
 
     initCliParameters()
     {
         const cliParams = commandLineArgs(this.getParameterDefinitions(), { stopAtFirstUnknown: true });
-        if (cliParams.command)
+        if(cliParams[CablesCLIModule.CABLES_DEV_URL]) this._baseUrl = this.CABLES_DEV_URL;
+        if(cliParams[CablesCLIModule.CLI_PARAM_BASE_URL]) this._baseUrl = new URL(cliParams[CablesCLIModule.CLI_PARAM_BASE_URL]);
+        if (cliParams[CablesCLIModule.CLI_PARAM_COMMAND])
         {
-            const command = this.getCommand(cliParams.command);
+            const command = this.getCommand(cliParams[CablesCLIModule.CLI_PARAM_COMMAND]);
             if (command)
             {
-                if (this.getCommandName() && cliParams.help)
+                if (this.getCommandName() && cliParams[CablesCLIModule.CLI_PARAM_HELP])
                 {
                     console.log(this.getUsageInfo());
                 }
@@ -48,20 +94,18 @@ export class CablesCLIModule
             else
             {
                 console.log(this.getUsageInfo());
-                if (!cliParams.help)
+                if (!cliParams[CablesCLIModule.CLI_PARAM_HELP])
                 {
-                    console.error("Unknown command '" + cliParams.command + "', use one of:", CablesCLI.commands.map((c) => { return c.name; })
-                        .join(","));
+                    console.error("Unknown command '" + cliParams[CablesCLIModule.CLI_PARAM_COMMAND] + "', use one of:", CablesCLI.commands.map((c) => { return c.name; }).join(","));
                 }
             }
         }
         else
         {
             console.log(this.getUsageInfo());
-            if (!cliParams.help)
+            if (!cliParams[CablesCLIModule.CLI_PARAM_HELP])
             {
-                console.error("No command given, use one of:", CablesCLI.commands.map((c) => { return c.name; })
-                    .join(","));
+                console.error("No command given, use one of:", CablesCLI.commands.map((c) => { return c.name; }).join(","));
             }
         }
         return false;
@@ -82,18 +126,7 @@ export class CablesCLIModule
 
     getParameterDefinitions()
     {
-        const parameterDefinitions = [
-            {
-                "name": "command",
-                "defaultOption": true,
-            },
-            {
-                "name": "help",
-                "alias": "h",
-                "type": Boolean,
-            },
-        ];
-        return this._cliOptions.concat(parameterDefinitions);
+        return this._cliOptions.concat(this._globalCliOptions);
     }
 
     getCliParameter(name)
@@ -105,5 +138,9 @@ export class CablesCLIModule
     getCommand(name)
     {
         return CablesCLI.commands.find((c) => { return c.name === name;});
+    }
+
+    getApiKey() {
+        return this.getCliParameter("api-key");
     }
 }
