@@ -3,9 +3,9 @@ import { CablesCLIModule } from "./climodule.js";
 export class CablesCLIHeadless extends CablesCLIModule
 {
 
-    constructor()
+    constructor(runningAsCli = false)
     {
-        super();
+        super(runningAsCli);
         this._cliOptions = [
             {
                 "name": "headless",
@@ -19,5 +19,10 @@ export class CablesCLIHeadless extends CablesCLIModule
     getCommandName()
     {
         return "headless";
+    }
+
+    requireApiKey()
+    {
+        return false;
     }
 }
