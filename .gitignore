@@ -1,6 +1,7 @@
 *.iml
 .idea/
 
+patch/
 test/
 node_modules/
 /.vscode

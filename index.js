@@ -545,7 +545,7 @@ class CablesCli
 
         if (options.minifyGlsl)
         {
-            options["minify-glsl"] = options.minifyGlsl;
+                options["minify-glsl"] = options.minifyGlsl;
         }
 
         if (options.assets && this._assetExportOptions.includes(options.assets))

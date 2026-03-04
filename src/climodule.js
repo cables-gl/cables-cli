@@ -127,7 +127,7 @@ export class CablesCLIModule
                     {
                         if (!moduleOptions[ro.name])
                         {
-                            this._log.error("MISSING:", ro.description, ", use", this._cli ? "--" + ro.name : ro.name);
+                            this._log.error("MISSING:", ro.description + ", use", this._cli ? "--" + ro.name : ro.name);
                             missingRequired = true;
                         }
                     });

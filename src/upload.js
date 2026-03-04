@@ -39,14 +39,15 @@ export class CablesCLIUpload extends CablesCLIModule
     async run(options = {})
     {
         await super.run(options);
-        const url = this.getUrl("/api/project/" + this.getModuleOption(CablesCLIUpload.MODULE_OPTION_PATCH_ID) + "/file");
+        try
+        {
+            const url = this.getUrl("/api/project/" + this.getModuleOption(CablesCLIUpload.MODULE_OPTION_PATCH_ID) + "/file");
+            const filePaths = this.getFileLocations();
 
-        const filePaths = this.getFileLocations();
-
-        try {
             const form = new FormData();
             let pos = 0;
-            for (const filePath of filePaths) {
+            for (const filePath of filePaths)
+            {
                 const file = await fs.openAsBlob(filePath);
                 form.append(String(pos), file, path.basename(filePath));
                 pos++;
@@ -76,7 +77,8 @@ export class CablesCLIUpload extends CablesCLIModule
                 const json = await response.json();
                 this._log.error("ERROR", json.msg);
             }
-        }catch (e) {
+        } catch (e)
+        {
             this._log.error("ERROR", e.message);
         }
     }

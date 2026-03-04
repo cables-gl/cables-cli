@@ -81,7 +81,7 @@ if (fromCli)
     cli.run()
         .then(() =>
         {
-            console.log("DONE");
+            console.info("finished...");
         });
 }
 else
