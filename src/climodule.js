@@ -127,6 +127,7 @@ export class CablesCLIModule
                     {
                         if (!moduleOptions[ro.name])
                         {
+                            if(!missingRequired) this._log.info(this.getUsageInfo());
                             this._log.error("MISSING:", ro.description + ", use", this._cli ? "--" + ro.name : ro.name);
                             missingRequired = true;
                         }
@@ -175,7 +176,7 @@ export class CablesCLIModule
         return this._cliOptions.concat(this._globalCliOptions);
     }
 
-    getModuleOptions(name)
+    getModuleOptions()
     {
         return this._moduleOptions;
     }
