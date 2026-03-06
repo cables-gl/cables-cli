@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { CablesCLIModule } from "./climodule.js";
+import { HttpError } from "./http_error.js";
 
 export class CablesCLIUpload extends CablesCLIModule
 {
@@ -39,48 +40,44 @@ export class CablesCLIUpload extends CablesCLIModule
     async run(options = {})
     {
         await super.run(options);
-        try
+
+        const url = this.getUrl("/api/project/" + this.getModuleOption(CablesCLIUpload.MODULE_OPTION_PATCH_ID) + "/file");
+        const filePaths = this.getFileLocations();
+
+        const form = new FormData();
+        let pos = 0;
+        for (const filePath of filePaths)
         {
-            const url = this.getUrl("/api/project/" + this.getModuleOption(CablesCLIUpload.MODULE_OPTION_PATCH_ID) + "/file");
-            const filePaths = this.getFileLocations();
-
-            const form = new FormData();
-            let pos = 0;
-            for (const filePath of filePaths)
-            {
-                const file = await fs.openAsBlob(filePath);
-                form.append(String(pos), file, path.basename(filePath));
-                pos++;
-            }
-
-            if (filePaths.length > 1)
-            {
-                this._log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
-            }
-            else
-            {
-                this._log.info("Uploading to", url.href, "...");
-
-            }
-            const reqOptions = {
-                "method": "POST",
-                "headers": { "apikey": this.getApiKey() },
-                "body": form,
-            };
-            const response = await fetch(url, reqOptions);
-            if (response.ok)
-            {
-                this._log.info("Success!");
-            }
-            else
-            {
-                const json = await response.json();
-                this._log.error("ERROR", json.msg);
-            }
-        } catch (e)
-        {
-            this._log.error("ERROR", e.message);
+            const file = await fs.openAsBlob(filePath);
+            form.append(String(pos), file, path.basename(filePath));
+            pos++;
         }
+
+        if (filePaths.length > 1)
+        {
+            this._log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
+        }
+        else
+        {
+            this._log.info("Uploading to", url.href, "...");
+
+        }
+        const reqOptions = {
+            "method": "POST",
+            "headers": { "apikey": this.getApiKey() },
+            "body": form,
+        };
+        const response = await fetch(url, reqOptions);
+        if (response.ok)
+        {
+            this._log.info("Success!");
+        }
+        else
+        {
+            const json = await response.json();
+            throw new HttpError(json.msg, response);
+        }
+        return this.getResult();
     }
 
     getUrl(path, params = {})

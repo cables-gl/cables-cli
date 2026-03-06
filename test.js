@@ -1,17 +1,12 @@
-const cables = require("./index.js");
+import { CablesCLI } from "./new.js";
 
+const cables = new CablesCLI();
 cables.export({
-    "patchId": "pQpie9",
-    "patch": true,
-    "destination": "test"
-}, onFinished, onError);
-
-function onFinished()
-{
+    "patch": ["99CJma"],
+    "destination": "test",
+    "url": "http://dev.cables.local"
+}).then(() => {
     console.log("Export finished!");
-}
-
-function onError(err)
-{
-    console.log("There was an error exporting your patch :/");
-}
+}).catch((e) => {
+    console.log("There was an error exporting your patch :/", e.toString());
+});

@@ -2,6 +2,7 @@ import { performance } from "node:perf_hooks";
 import fs from "fs";
 import vm from "vm";
 import path from "path";
+import { Logger } from "./logger.js";
 
 class HeadlessWindow extends EventTarget
 {
@@ -21,7 +22,7 @@ export class CablesHeadlessRunner
     constructor(patchFile, runningAsCli = true)
     {
         this._cli = runningAsCli;
-        this._log = console;
+        this._log = new Logger(!this._cli);
         this._patchFile = patchFile;
 
         this._dir = path.dirname(patchFile);
@@ -50,13 +51,18 @@ export class CablesHeadlessRunner
         });
         new CABLES.Patch({
             "patch": patchJson.toString(),
-            "onError": this._log.error,
+            "onError": (...args) => {
+                this._log.error(...args);
+            },
             "doRequestAnimation": false,
             "onFinishedLoading": () =>
             {
-                this._log.debug("patch loaded");
+                this._log.info("patch loaded");
             },
         });
+        return {
+            "success": true,
+        };
     }
 
     _getRenderLoop(patch)

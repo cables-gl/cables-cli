@@ -23,15 +23,11 @@ export class CablesCLIHeadless extends CablesCLIModule
     async run(options = {})
     {
         await super.run(options);
-        try {
-            const patchFile = this.getModuleOption(CablesCLIHeadless.MODULE_OPTION_PATCH_FILE);
-            if (patchFile)
-            {
-                const runner = new CablesHeadlessRunner(patchFile);
-                await runner.run();
-            }
-        }catch (e) {
-            this._log.error("ERROR", e.message);
+        const patchFile = this.getModuleOption(CablesCLIHeadless.MODULE_OPTION_PATCH_FILE);
+        if (patchFile)
+        {
+            const runner = new CablesHeadlessRunner(patchFile);
+            return runner.run();
         }
     }
 

@@ -6,25 +6,30 @@ import { CablesCLIExport } from "./src/export.js";
 import { CablesCLIUpload } from "./src/upload.js";
 import { CablesCLIHeadless } from "./src/headless.js";
 import { CablesCLIModule } from "./src/climodule.js";
+import { UsageError } from "./src/usage_error.js";
 
 export class CablesCLI extends CablesCLIModule
 {
 
     static CONFIG_FILENAME = ".cablesrc";
 
+    static COMMAND_NAME_EXPORT = "export";
+    static COMMAND_NAME_UPLOAD = "upload";
+    static COMMAND_NAME_HEADLESS = "headless";
+
     static commands = [
         {
-            "name": "export",
+            "name": CablesCLI.COMMAND_NAME_EXPORT,
             "description": "Export patches from " + CablesCLIModule.CABLES_URL.hostname,
             "class": CablesCLIExport,
         },
         {
-            "name": "upload",
+            "name": CablesCLI.COMMAND_NAME_UPLOAD,
             "description": "Upload assets to patches on " + CablesCLIModule.CABLES_URL.hostname,
             "class": CablesCLIUpload,
         },
         {
-            "name": "headless",
+            "name": CablesCLI.COMMAND_NAME_HEADLESS,
             "description": "Run an exported patch on the command line",
             "class": CablesCLIHeadless,
         },
@@ -58,19 +63,32 @@ export class CablesCLI extends CablesCLIModule
 
     async run(options = {})
     {
-        if (this._cli)
-        {
-            const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
-            if (configFromFile.apikey) options[CablesCLIModule.MODULE_OPTION_API_KEY] = configFromFile.apikey;
-        }
         await super.run(options);
-        const commandParam = this.getModuleOption("command");
+        const commandParam = this.getModuleOption(CablesCLIModule.MODULE_OPTION_COMMAND);
         if (commandParam)
         {
             const command = this.getCommand(commandParam);
             let cliModule = new command.class(this._cli);
-            await cliModule.run(options);
+            return cliModule.run(options);
         }
+    }
+
+    async export(options = {})
+    {
+        options.command  = CablesCLI.COMMAND_NAME_EXPORT;
+        return this.run(options);
+    }
+
+    async upload(options = {})
+    {
+        options.command  = CablesCLI.COMMAND_NAME_UPLOAD;
+        return this.run(options);
+    }
+
+    async headless(options = {})
+    {
+        options.command  = CablesCLI.COMMAND_NAME_HEADLESS;
+        return this.run(options);
     }
 }
 
@@ -79,9 +97,18 @@ const cli = new CablesCLI(fromCli);
 if (fromCli)
 {
     cli.run()
-        .then(() =>
+        .then((result) =>
         {
-            console.info("finished...");
+            cli._log.info("success", result.success);
+        })
+        .catch((e) =>
+        {
+            const help = cli.getModuleOption(CablesCLI.MODULE_OPTION_HELP);
+            if (e instanceof UsageError)
+            {
+                cli._log.info(cli.getUsageInfo());
+            }
+            if (!help) cli._log.error(e.toString());
         });
 }
 else

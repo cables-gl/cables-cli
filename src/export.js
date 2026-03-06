@@ -3,6 +3,8 @@ import path from "path";
 import fs from "fs";
 import process from "process";
 import extract from "extract-zip";
+import { UsageError } from "./usage_error.js";
+import { HttpError } from "./http_error.js";
 
 export class CablesCLIExport extends CablesCLIModule
 {
@@ -123,90 +125,90 @@ export class CablesCLIExport extends CablesCLIModule
     async run(options)
     {
         await super.run(options);
-        try
+
+        const exportType = this.getModuleOption(CablesCLIExport.MODULE_OPTION_EXPORT_TYPE);
+        switch (exportType)
         {
-            const exportType = this.getModuleOption(CablesCLIExport.MODULE_OPTION_EXPORT_TYPE);
-            switch (exportType)
+        case "code":
+            break;
+        default:
+            const patchIds = this.getModuleOption(CablesCLIExport.MODULE_OPTION_PATCH_ID);
+            if (patchIds.length > 1)
             {
-            case "code":
-                break;
-            default:
-                const patchIds = this.getModuleOption(CablesCLIExport.MODULE_OPTION_PATCH_ID);
-                if (patchIds.length > 1)
+                throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
+            }
+            const url = this.getExportUrl(patchIds[0]);
+            const reqOptions = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            this._log.info("requesting export...");
+            this._log.info("downloading from ", url.href, "...");
+            const response = await fetch(url, reqOptions);
+            if (response.ok)
+            {
+                const json = await response.json();
+                if (json.log && Array.isArray(json.log))
                 {
-                    this._log.error("Export type '" + exportType + "' does not support multiple patch-ids.");
-                    return;
+                    const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error";});
+                    relevantEntries.forEach((logEntry) =>
+                    {
+                        this._log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
+                    });
                 }
-                const url = this.getExportUrl(patchIds[0]);
-                const reqOptions = {
-                    "method": "GET",
-                    "headers": { "apikey": this.getApiKey() },
-                };
-                this._log.info("requesting export...");
-                this._log.info("downloading from ", url.href, "...");
-                const response = await fetch(url, reqOptions);
-                if (response.ok)
+                let downloadUrl = new URL(json.urls.downloadUrl);
+                const tempFile = await this._downloadZip(downloadUrl);
+                this._log.info("download finished... ", tempFile);
+
+                let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
+                const destination = this.getModuleOption(CablesCLIExport.MODULE_OPTION_DESTINATION);
+                if (destination)
                 {
-                    const json = await response.json();
-                    if (json.log && Array.isArray(json.log))
+                    if (path.isAbsolute(destination))
                     {
-                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error";});
-                        relevantEntries.forEach((logEntry) =>
-                        {
-                            this._log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
-                        });
-                    }
-                    let downloadUrl = new URL(json.urls.downloadUrl);
-                    const tempFile = await this._downloadZip(downloadUrl);
-                    this._log.info("download finished... ", tempFile);
-
-                    let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
-                    const destination = this.getModuleOption(CablesCLIExport.MODULE_OPTION_DESTINATION);
-                    if (destination)
-                    {
-                        if (path.isAbsolute(destination))
-                        {
-                            finalDir = destination;
-                        }
-                        else
-                        {
-                            finalDir = path.normalize(path.join(process.cwd(), destination));
-                        }
+                        finalDir = destination;
                     }
                     else
                     {
-                        finalDir = path.join(process.cwd(), CablesCLIExport.DEFAULT_DESTINATION);
-                    }
-
-                    if (this.getModuleOption(CablesCLIExport.MODULE_OPTION_EXTRACT_ZIP))
-                    {
-                        this._log.info("extracting to " + finalDir);
-                        await extract(tempFile, { dir: finalDir });
-                        fs.unlinkSync(tempFile);
-                    }
-                    else
-                    {
-                        const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
-                        fs.renameSync(tempFile, finalFilename);
+                        finalDir = path.normalize(path.join(process.cwd(), destination));
                     }
                 }
                 else
                 {
-                    const json = await response.json();
-                    this._log.error("ERROR", json.msg);
+                    finalDir = path.join(process.cwd(), CablesCLIExport.DEFAULT_DESTINATION);
                 }
-                break;
+
+                if (this.getModuleOption(CablesCLIExport.MODULE_OPTION_EXTRACT_ZIP))
+                {
+                    this._log.info("extracting to " + finalDir);
+                    await extract(tempFile, { dir: finalDir });
+                    fs.unlinkSync(tempFile);
+                }
+                else
+                {
+                    const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
+                    fs.renameSync(tempFile, finalFilename);
+                }
             }
-        } catch (e)
-        {
-            this._log.error("ERROR", e.message);
+            else
+            {
+                let message = "";
+                try {
+                    message = await response.json();
+                    message = message.msg;
+                }catch (e) {
+                    message = "failed to parse error response json: " +  e;
+                }
+                throw new HttpError(message, response);
+            }
+            break;
         }
+        return this.getResult();
     }
 
     getCommandName()
     {
-        return;
-        "export";
+        return "export";
     }
 
     requireApiKey()
@@ -248,7 +250,7 @@ export class CablesCLIExport extends CablesCLIModule
     {
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
         const res = await fetch(downloadUrl, { "method": "HEAD" });
-        this._log.debug("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
+        this._log.info("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
         let x = await fetch(downloadUrl, { "method": "GET" });
         x = await x.arrayBuffer();
         fs.writeFileSync(tempFile, Buffer.from(x));

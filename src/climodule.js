@@ -4,6 +4,8 @@ import commandLineArgs from "command-line-args";
 import { CablesCLI } from "../new.js";
 import prompt from "prompt";
 import homeConfig from "home-config";
+import { Logger } from "./logger.js";
+import { UsageError } from "./usage_error.js";
 
 /**
  * @abstract
@@ -14,16 +16,17 @@ export class CablesCLIModule
     static CABLES_DEV_URL = new URL("https://dev.cables.gl");
 
     static MODULE_OPTION_COMMAND = "command";
-
     static MODULE_OPTION_API_KEY = "api-key";
     static MODULE_OPTION_BASE_URL = "url";
     static MODULE_OPTION_HELP = "help";
     static MODULE_OPTION_USE_DEV = "dev";
 
+    static HOMECONFIG_OPTION_API_KEY = "apikey";
+
     constructor(runningAsCli = false)
     {
         this._cli = runningAsCli;
-        this._log = console;
+        this._log = new Logger(!this._cli);
         this._baseUrl = CablesCLIModule.CABLES_URL;
 
         this._moduleOptions = {};
@@ -95,6 +98,7 @@ export class CablesCLIModule
         let moduleOptionDefinitions = this.getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
         moduleOptions = { ...options, ...moduleOptions };
+        this._moduleOptions = moduleOptions;
         if (moduleOptions[CablesCLIModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesCLIModule.CABLES_DEV_URL;
         if (moduleOptions[CablesCLIModule.MODULE_OPTION_BASE_URL]) this._baseUrl = new URL(moduleOptions[CablesCLIModule.MODULE_OPTION_BASE_URL]);
         if (this._baseUrl.hostname.includes("local"))
@@ -106,54 +110,56 @@ export class CablesCLIModule
             const command = this.getCommand(moduleOptions[CablesCLIModule.MODULE_OPTION_COMMAND]);
             if (command)
             {
-                if (this.requireApiKey() && !moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
-                {
-                    this._log.info(this.getUsageInfo());
-                    this._log.error("Cables API-Key is required to run command '" + command.name + "'");
-                    const result = await prompt.get(["apikey"]);
-                    this._saveToHomeConfig("apikey", result.apikey);
-                    moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = result.apikey;
-                }
-
                 if (this.getCommandName() && moduleOptions[CablesCLIModule.MODULE_OPTION_HELP])
                 {
                     this._log.info(this.getUsageInfo());
                 }
                 else
                 {
+                    if(this.requireApiKey()) {
+                        if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
+                        {
+                            const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
+                            if (configFromFile.apikey) moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = configFromFile.apikey;
+                        }
+                        if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
+                        {
+                            if (this._cli)
+                            {
+                                const result = await prompt.get(CablesCLIModule.MODULE_OPTION_API_KEY);
+                                this._saveToHomeConfig(CablesCLIModule.HOMECONFIG_OPTION_API_KEY, result[CablesCLIModule.HOMECONFIG_OPTION_API_KEY]);
+                                moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = result[CablesCLIModule.HOMECONFIG_OPTION_API_KEY];
+                            }
+                            if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
+                            {
+                                throw new UsageError("Cables API-Key is required to run command '" + command.name + "'");
+                            }
+                        }
+                    }
+
+
                     const requiredOptions = moduleOptionDefinitions.filter((d) => { return d.required;});
-                    let missingRequired = false;
                     requiredOptions.forEach((ro) =>
                     {
                         if (!moduleOptions[ro.name])
                         {
-                            if(!missingRequired) this._log.info(this.getUsageInfo());
-                            this._log.error("MISSING:", ro.description + ", use", this._cli ? "--" + ro.name : ro.name);
-                            missingRequired = true;
+                            let message = "MISSING: " + ro.description + ", use " + (this._cli ? "--" + ro.name : ro.name);
+                            throw new UsageError(message);
                         }
                     });
-                    if (!missingRequired) this._moduleOptions = moduleOptions;
                 }
             }
             else
             {
-                this._log.info(this.getUsageInfo());
-                if (!moduleOptions[CablesCLIModule.MODULE_OPTION_HELP])
-                {
-                    this._log.error("Unknown command '" + moduleOptions[CablesCLIModule.MODULE_OPTION_COMMAND] + "', use one of:",
-                        CablesCLI.commands.map((c) => { return c.name; })
-                            .join(","));
-                }
+                const commandNames = CablesCLI.commands.map((c) => { return c.name; });
+                const message = "Unknown command '" + moduleOptions[CablesCLIModule.MODULE_OPTION_COMMAND] + "', use one of: " + commandNames.join(", ");
+                throw new UsageError(message, true);
             }
         }
         else
         {
-            this._log.info(this.getUsageInfo());
-            if (!moduleOptions[CablesCLIModule.MODULE_OPTION_HELP])
-            {
-                this._log.error("No command given, use one of:", CablesCLI.commands.map((c) => { return c.name; })
-                    .join(","));
-            }
+            throw new UsageError("No command given, use one of:" + CablesCLI.commands.map((c) => { return c.name; })
+                .join(","), true);
         }
         return false;
     }
@@ -161,6 +167,15 @@ export class CablesCLIModule
     async run(options = {})
     {
         await this.initModuleOptions(options);
+        return this.getResult();
+    }
+
+    getResult(success = true, logEntries = [])
+    {
+        return {
+            "success": success,
+            "log": [...this._log.getEntries(), ...logEntries],
+        };
     }
 
     /**
@@ -198,7 +213,6 @@ export class CablesCLIModule
 
     _saveToHomeConfig(key, value)
     {
-        console.log("TTTT", this._cli);
         if (this._cli)
         {
             const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
