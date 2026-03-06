@@ -95,6 +95,7 @@ export class CablesCLIModule
 
     async initModuleOptions(options = {})
     {
+        options = this.convertLibraryOptions(options);
         let moduleOptionDefinitions = this.getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
         moduleOptions = { ...options, ...moduleOptions };
@@ -116,7 +117,8 @@ export class CablesCLIModule
                 }
                 else
                 {
-                    if(this.requireApiKey()) {
+                    if (this.requireApiKey())
+                    {
                         if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
                         {
                             const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
@@ -223,4 +225,25 @@ export class CablesCLIModule
         }
     }
 
+    convertLibraryOptions(options = {})
+    {
+        const definitions = this.getModuleOptionDefinitions();
+        Object.keys(options)
+            .forEach((optionKey) =>
+            {
+                const value = options[optionKey];
+                const definition = definitions.find((d) => { return d.name === optionKey;});
+                if (definition)
+                {
+                    if (definition.multiple)
+                    {
+                        if (!Array.isArray(value))
+                        {
+                            options[optionKey] = [value];
+                        }
+                    }
+                }
+            });
+        return options;
+    }
 }

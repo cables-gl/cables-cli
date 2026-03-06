@@ -111,7 +111,3 @@ if (fromCli)
             if (!help) cli._log.error(e.toString());
         });
 }
-else
-{
-    console.info("running as a library");
-}
