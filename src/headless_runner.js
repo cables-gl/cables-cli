@@ -91,7 +91,7 @@ export class CablesHeadlessRunner
 
             exec(timestamp)
             {
-                // super.exec(timestamp);
+                super.exec(timestamp);
                 this.#patch.config.fpsLimit = this.#patch.config.fpsLimit || 0;
                 if (this.#patch.config.fpsLimit)
                 {
@@ -149,7 +149,7 @@ export class CablesHeadlessRunner
              */
             renderFrame(timestamp)
             {
-                // if (this.paused) return;
+                if (this.paused) return;
                 const time = this.#patch.timer.getTime();
                 const startTime = performance.now();
                 const delta = timestamp - this.reqAnimTimeStamp || timestamp;
@@ -167,7 +167,7 @@ export class CablesHeadlessRunner
 
             pause()
             {
-                // super.pause();
+                super.pause();
                 clearInterval(this.#animReq);
                 this.#animReq = null;
                 this.paused = true;
@@ -175,7 +175,7 @@ export class CablesHeadlessRunner
 
             resume()
             {
-                // super.resume();
+                super.resume();
                 clearInterval(this.#animReq);
                 this.paused = false;
                 this.exec(0);
