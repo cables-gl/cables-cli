@@ -1,10 +1,10 @@
-import { CablesCLI } from "./new.js";
+import { CablesCLI } from "./index.js";
 
 const cables = new CablesCLI();
 cables.export({
     "patch": "99CJma",
     "destination": "test",
-    "url": "http://dev.cables.local",
+    "url": "http://dev.cables.gl",
 })
     .then((result) =>
     {

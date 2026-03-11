@@ -1,7 +1,7 @@
 import process from "node:process";
 import commandLineUsage from "command-line-usage";
 import commandLineArgs from "command-line-args";
-import { CablesCLI } from "../new.js";
+import { CablesCLI } from "../index.js";
 import prompt from "prompt";
 import homeConfig from "home-config";
 import { Logger } from "./logger.js";
