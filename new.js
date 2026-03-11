@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 import { fileURLToPath } from "node:url";
 import process from "node:process";
-import homeConfig from "home-config";
 import { CablesCLIExport } from "./src/export.js";
 import { CablesCLIUpload } from "./src/upload.js";
 import { CablesCLIHeadless } from "./src/headless.js";
