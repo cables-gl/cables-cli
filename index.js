@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 import {pathToFileURL} from "node:url";
 import process from "node:process";
-import path from "path";
 import fs from "fs";
 import {CablesCLIExport} from "./src/export.js";
 import {CablesCLIUpload} from "./src/upload.js";
@@ -10,8 +9,6 @@ import {CablesCLIModule} from "./src/climodule.js";
 import {UsageError} from "./src/usage_error.js";
 
 export class CablesCLI extends CablesCLIModule {
-
-    static CONFIG_FILENAME = ".cablesrc";
 
     static COMMAND_NAME_EXPORT = "export";
     static COMMAND_NAME_UPLOAD = "upload";

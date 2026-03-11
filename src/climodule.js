@@ -3,31 +3,42 @@ import commandLineUsage from "command-line-usage";
 import commandLineArgs from "command-line-args";
 import { CablesCLI } from "../index.js";
 import prompt from "prompt";
-import homeConfig from "home-config";
 import { Logger } from "./logger.js";
 import { UsageError } from "./usage_error.js";
+import * as os from "node:os";
+import path from "path";
+import { parse, stringify } from "ini";
+import fs from "fs";
 
 /**
  * @abstract
  */
 export class CablesCLIModule
 {
+    static CONFIG_FILENAME = ".cablesrc";
+
     static CABLES_URL = new URL("https://cables.gl");
     static CABLES_DEV_URL = new URL("https://dev.cables.gl");
 
     static MODULE_OPTION_COMMAND = "command";
-    static MODULE_OPTION_API_KEY = "api-key";
+    static MODULE_OPTION_API_KEY = "apikey";
     static MODULE_OPTION_BASE_URL = "url";
     static MODULE_OPTION_HELP = "help";
     static MODULE_OPTION_USE_DEV = "dev";
-
-    static HOMECONFIG_OPTION_API_KEY = "apikey";
 
     constructor(runningAsCli = false)
     {
         this._cli = runningAsCli;
         this._log = new Logger(!this._cli);
         this._baseUrl = CablesCLIModule.CABLES_URL;
+
+        this._localConfigFileLocation = null;
+        this._localConfig = {};
+        if (runningAsCli)
+        {
+            this._localConfigFileLocation = path.join(os.homedir(), CablesCLIModule.CONFIG_FILENAME);
+            this._localConfig = this._readLocalConfig();
+        }
 
         this._moduleOptions = {};
         this._cliOptions = [];
@@ -121,16 +132,15 @@ export class CablesCLIModule
                     {
                         if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
                         {
-                            const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
-                            if (configFromFile.apikey) moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = configFromFile.apikey;
+                            if (this._localConfig.apikey) moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = this._localConfig.apikey;
                         }
                         if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
                         {
                             if (this._cli)
                             {
                                 const result = await prompt.get(CablesCLIModule.MODULE_OPTION_API_KEY);
-                                this._saveToHomeConfig(CablesCLIModule.HOMECONFIG_OPTION_API_KEY, result[CablesCLIModule.HOMECONFIG_OPTION_API_KEY]);
-                                moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = result[CablesCLIModule.HOMECONFIG_OPTION_API_KEY];
+                                this._saveToLocalConfig(CablesCLIModule.MODULE_OPTION_API_KEY, result[CablesCLIModule.MODULE_OPTION_API_KEY]);
+                                moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY] = result[CablesCLIModule.MODULE_OPTION_API_KEY];
                             }
                             if (!moduleOptions[CablesCLIModule.MODULE_OPTION_API_KEY])
                             {
@@ -213,15 +223,37 @@ export class CablesCLIModule
         return this.getModuleOption(CablesCLIModule.MODULE_OPTION_API_KEY);
     }
 
-    _saveToHomeConfig(key, value)
+    _readLocalConfig()
+    {
+        let configFromFile = {};
+        try
+        {
+            const rawFile = fs.readFileSync(this._localConfigFileLocation);
+            if(rawFile) {
+                configFromFile = parse(rawFile.toString());
+            }
+        } catch (e)
+        {
+            // configfile not found, return empty config
+        }
+        return configFromFile;
+    }
+
+    _saveToLocalConfig(key, value)
     {
         if (this._cli)
         {
-            const configFromFile = homeConfig.load(CablesCLI.CONFIG_FILENAME);
-            configFromFile[key] = value;
-            configFromFile.save();
-            this._log.info(key, "saved in ~/" + CablesCLI.CONFIG_FILENAME);
-
+            this._localConfig[key] = value;
+            try
+            {
+                const iniText = stringify(this._localConfig);
+                fs.writeFileSync(this._localConfigFileLocation, iniText);
+                this._log.info(key, "saved in ~/" + CablesCLIModule.CONFIG_FILENAME);
+                this._localConfig = this._readLocalConfig();
+            } catch (e)
+            {
+                throw new UsageError("failed to save " + key + " to " + this._localConfigFileLocation);
+            }
         }
     }
 

@@ -9,8 +9,6 @@ const extract = require("extract-zip");
 const fetch = require("node-fetch");
 const mkdirp = require("mkdirp");
 
-const { load } = require("home-config");
-
 class CablesCli
 {
 
@@ -118,7 +116,7 @@ class CablesCli
             },
         ];
 
-        this._cfg = load(this._configFilename);
+        this._cfg = {};
 
         if (this._isRunAsCli())
         {
