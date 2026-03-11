@@ -1,14 +1,15 @@
 #! /usr/bin/env node
-import { fileURLToPath } from "node:url";
+import {pathToFileURL} from "node:url";
 import process from "node:process";
-import { CablesCLIExport } from "./src/export.js";
-import { CablesCLIUpload } from "./src/upload.js";
-import { CablesCLIHeadless } from "./src/headless.js";
-import { CablesCLIModule } from "./src/climodule.js";
-import { UsageError } from "./src/usage_error.js";
+import path from "path";
+import fs from "fs";
+import {CablesCLIExport} from "./src/export.js";
+import {CablesCLIUpload} from "./src/upload.js";
+import {CablesCLIHeadless} from "./src/headless.js";
+import {CablesCLIModule} from "./src/climodule.js";
+import {UsageError} from "./src/usage_error.js";
 
-export class CablesCLI extends CablesCLIModule
-{
+export class CablesCLI extends CablesCLIModule {
 
     static CONFIG_FILENAME = ".cablesrc";
 
@@ -34,12 +35,10 @@ export class CablesCLI extends CablesCLIModule
         },
     ];
 
-    constructor(runningAsCli = false)
-    {
+    constructor(runningAsCli = false) {
         super(runningAsCli);
         let content = "";
-        CablesCLI.commands.forEach((command, i) =>
-        {
+        CablesCLI.commands.forEach((command, i) => {
             if (i > 0) content += "\n";
             content += command.name + "\t" + command.description;
         });
@@ -50,61 +49,57 @@ export class CablesCLI extends CablesCLIModule
 
     }
 
-    getCommandName()
-    {
+    getCommandName() {
         return "";
     }
 
-    requireApiKey()
-    {
+    requireApiKey() {
         return false;
     }
 
-    async run(options = {})
-    {
+    async run(options = {}) {
         await super.run(options);
         const commandParam = this.getModuleOption(CablesCLIModule.MODULE_OPTION_COMMAND);
-        if (commandParam)
-        {
+        if (commandParam) {
             const command = this.getCommand(commandParam);
             let cliModule = new command.class(this._cli);
             return cliModule.run(options);
         }
     }
 
-    async export(options = {})
-    {
-        options.command  = CablesCLI.COMMAND_NAME_EXPORT;
+    async export(options = {}) {
+        options.command = CablesCLI.COMMAND_NAME_EXPORT;
         return this.run(options);
     }
 
-    async upload(options = {})
-    {
-        options.command  = CablesCLI.COMMAND_NAME_UPLOAD;
+    async upload(options = {}) {
+        options.command = CablesCLI.COMMAND_NAME_UPLOAD;
         return this.run(options);
     }
 
-    async headless(options = {})
-    {
-        options.command  = CablesCLI.COMMAND_NAME_HEADLESS;
+    async headless(options = {}) {
+        options.command = CablesCLI.COMMAND_NAME_HEADLESS;
         return this.run(options);
     }
 }
 
-const fromCli = process?.argv?.includes(fileURLToPath(import.meta.url));
-const cli = new CablesCLI(fromCli);
-if (fromCli)
-{
+const runningAsCli = (() => {
+    if (!process?.argv[1]) return false;
+    const thisUrl = new URL(import.meta.url);
+    const argv1Real = fs.realpathSync(process.argv[1]);       // resolve .bin/cables -> .../index.js
+    const argv1Url = pathToFileURL(argv1Real);
+    return thisUrl.href === argv1Url.href;                 // true only when invoked via that bin/script
+})();
+
+const cli = new CablesCLI(runningAsCli);
+if (runningAsCli) {
     cli.run()
-        .then((result) =>
-        {
+        .then((result) => {
             cli._log.info("success", result.success);
         })
-        .catch((e) =>
-        {
+        .catch((e) => {
             const help = cli.getModuleOption(CablesCLI.MODULE_OPTION_HELP);
-            if (e instanceof UsageError)
-            {
+            if (e instanceof UsageError) {
                 cli._log.info(cli.getUsageInfo());
             }
             if (!help) cli._log.error(e.toString());
