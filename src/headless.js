@@ -1,7 +1,13 @@
-import { CablesCLIModule } from "./climodule.js";
+import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
 
-export class CablesCLIHeadless extends CablesCLIModule
+/**
+ * @typedef {ModuleOptions<HeadlessModuleOptions>} HeadlessModuleOptions
+ *
+ * @property {String} file
+ */
+
+export class CablesHeadless extends CablesModule
 {
 
     static MODULE_OPTION_PATCH_FILE = "file";
@@ -9,9 +15,13 @@ export class CablesCLIHeadless extends CablesCLIModule
     constructor(runningAsCli = false)
     {
         super(runningAsCli);
+        /**
+         * @type Array<CliOptionDefinition>
+         * @private
+         */
         this._cliOptions = [
             {
-                "name": CablesCLIHeadless.MODULE_OPTION_PATCH_FILE,
+                "name": CablesHeadless.MODULE_OPTION_PATCH_FILE,
                 "description": "Patchfile from a standalone project or export (.cables)",
                 "type": String,
                 "typeLabel": "{underline file}",
@@ -20,10 +30,33 @@ export class CablesCLIHeadless extends CablesCLIModule
         ];
     }
 
+    /**
+     *
+     * @return {String}
+     */
+    getCommandName()
+    {
+        return "headless";
+    }
+
+    /**
+     *
+     * @return {Boolean}
+     */
+    requireApiKey()
+    {
+        return false;
+    }
+
+    /**
+     *
+     * @param {ModuleOptions<HeadlessModuleOptions>} [options]
+     * @return {Promise<ModuleRunResult>}
+     */
     async run(options = {})
     {
         await super.run(options);
-        const patchFile = this.getModuleOption(CablesCLIHeadless.MODULE_OPTION_PATCH_FILE);
+        const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
         if (patchFile)
         {
             const runner = new CablesHeadlessRunner(patchFile);
@@ -31,13 +64,5 @@ export class CablesCLIHeadless extends CablesCLIModule
         }
     }
 
-    getCommandName()
-    {
-        return "headless";
-    }
 
-    requireApiKey()
-    {
-        return false;
-    }
 }

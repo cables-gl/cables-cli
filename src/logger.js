@@ -1,5 +1,22 @@
 import path from "path";
 
+/**
+ * @typedef {Object} LogEntryContext
+ * @property {String} line
+ * @property {String} index
+ * @property {String} clean
+ * @property {String} stack
+ */
+
+/**
+ * @typedef {Object} LogEntry
+ * @property {("uncaught"|"error"|"warn"|"info"|"verbose"|"debug")} level
+ * @property {Date} date
+ * @property {String} initiator filename of the initiating module
+ * @property {LogEntryContext} context
+ * @property {String} message
+ */
+
 /* eslint-disable no-console */
 export class Logger
 {
@@ -137,6 +154,10 @@ export class Logger
         });
     }
 
+    /**
+     *
+     * @return {Array<LogEntry>}
+     */
     getEntries() {
         return this._entries;
     }
@@ -180,6 +201,13 @@ export class Logger
         }
     }
 
+
+    /**
+     *
+     * @param {Array} loggerArguments
+     * @return LogEntryContext
+     * @private
+     */
     _getContext(loggerArguments)
     {
         try
