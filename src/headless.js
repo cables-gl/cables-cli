@@ -55,13 +55,20 @@ export class CablesHeadless extends CablesModule
      */
     async run(options = {})
     {
-        await super.run(options);
-        const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
-        if (patchFile)
+        try {
+            await super.run(options);
+            const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
+            if (patchFile)
+            {
+                const runner = new CablesHeadlessRunner(patchFile);
+                return runner.run();
+            }
+        } catch (e)
         {
-            const runner = new CablesHeadlessRunner(patchFile);
-            return runner.run();
+            this.log.error(e.message, e.cause);
+            return this.getResult(false);
         }
+
     }
 
 

@@ -1,6 +1,12 @@
 import path from "path";
 
 /**
+ * @typedef {Object} LoggerOptions
+ * @property {("debug"|"verbose"|"info"|"warn"|"error")} [logLevel] only log messages above the specified level
+ * @property {Boolean} [silent] do not output to console, write to entries array only
+ */
+
+/**
  * @typedef {Object} LogEntryContext
  * @property {String} line
  * @property {String} index
@@ -10,7 +16,7 @@ import path from "path";
 
 /**
  * @typedef {Object} LogEntry
- * @property {("uncaught"|"error"|"warn"|"info"|"verbose"|"debug")} level
+ * @property {("debug"|"verbose"|"info"|"warn"|"error")} level
  * @property {Date} date
  * @property {String} initiator filename of the initiating module
  * @property {LogEntryContext} context
@@ -20,9 +26,14 @@ import path from "path";
 /* eslint-disable no-console */
 export class Logger
 {
-    constructor(silent = false)
+    /**
+     *
+     * @param {LoggerOptions} options
+     */
+    constructor(options = {})
     {
-        this._silent = silent;
+        this._logLevel = options.logLevel || "info";
+        this._silent = options.silent || false;
         this._services = [];
         this._entries = [];
 
@@ -35,7 +46,7 @@ export class Logger
             "uncaught"
         ];
 
-        this._logLevelIndex = this._levels.findIndex((level) => { return level == this._logLevel; });
+        this._logLevelIndex = this._levels.findIndex((level) => { return level === this._logLevel; });
 
         // register console output, will include "verbose"
         this._services.push({
@@ -50,6 +61,19 @@ export class Logger
     {
         const initiator = this._getCallerFile();
         return initiator || "logger";
+    }
+
+    /**
+     * ignore subsequent errors below the given level
+     *
+     * @param {("debug"|"verbose"|"info"|"warn"|"error")} logLevel
+     */
+    setLogLevel(logLevel) {
+        if(!logLevel) return;
+        if(!this._levels.includes(logLevel)) return;
+        this._logLevel = logLevel;
+        this._logLevelIndex = this._levels.findIndex((level) => { return level === this._logLevel; });
+        this.debug("setting loglevel to ", logLevel, this._logLevelIndex);
     }
 
     debug(...args)
@@ -119,7 +143,7 @@ export class Logger
 
     uncaught(...args)
     {
-        const level = "uncaught";
+        const level = "error";
         if (this._logLevelFiltered(level)) return;
         const initiator = this._initiator;
         const context = this._getContext(args);
@@ -273,11 +297,6 @@ export class Logger
     _logLevelFiltered(logLevel)
     {
         if (!logLevel) return false;
-        if (!this._logLevel)
-        {
-            this._logLevel = this._cables ? this._cables.getLogLevel() : "info";
-            if (!this._logLevel) return false;
-        }
         if (this._logLevelIndex < 0) return false;
         const levelIndex = this._levels.findIndex((level) => { return level === logLevel; });
         if (levelIndex < 0) return false;

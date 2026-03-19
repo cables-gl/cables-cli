@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
+import { UsageError } from "./usage_error.js";
 
 /**
  * @typedef {ModuleOptions<UploadModuleOptions>} UploadModuleOptions
@@ -68,45 +69,62 @@ export class CablesUpload extends CablesModule
      */
     async run(options = {})
     {
-        await super.run(options);
+        try
+        {
+            await super.run(options);
 
-        const url = this._getUrl("/api/project/" + this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID) + "/file");
-        const filePaths = this._getFileLocations();
+            const givenFiles = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
+            const url = this._getUrl("/api/project/" + this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID) + "/file");
+            const filePaths = this._getFileLocations();
+            if (filePaths.length === 0)
+            {
+                throw new UsageError("No files given for upload! given file(s) were \"" + givenFiles.join(",") + "\"");
+            }
 
-        const form = new FormData();
-        let pos = 0;
-        for (const filePath of filePaths)
+            const form = new FormData();
+            let pos = 0;
+            for (const filePath of filePaths)
+            {
+                if (filePath)
+                {
+                    const file = await fs.openAsBlob(filePath);
+                    form.append(String(pos), file, path.basename(filePath));
+                    pos++;
+                }
+            }
+
+            if (filePaths.length > 1)
+            {
+                this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
+            }
+            else
+            {
+                this.log.info("Uploading to", url.href, "...");
+
+            }
+            const reqOptions = {
+                "method": "POST",
+                "headers": { "apikey": this.getApiKey() },
+                "body": form,
+            };
+            const response = await fetch(url, reqOptions);
+            if (response.ok && response.status === 200)
+            {
+                this.log.info("Success!");
+            }
+            else
+            {
+                const json = await response.json();
+                const msg = this.getHttpResponseErrorMessage(json, response.status);
+                throw new HttpError(msg, response);
+            }
+            return this.getResult();
+        } catch (e)
         {
-            const file = await fs.openAsBlob(filePath);
-            form.append(String(pos), file, path.basename(filePath));
-            pos++;
+            this.log.error(e.message, e.cause);
+            return this.getResult(false);
         }
 
-        if (filePaths.length > 1)
-        {
-            this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
-        }
-        else
-        {
-            this.log.info("Uploading to", url.href, "...");
-
-        }
-        const reqOptions = {
-            "method": "POST",
-            "headers": { "apikey": this.getApiKey() },
-            "body": form,
-        };
-        const response = await fetch(url, reqOptions);
-        if (response.ok)
-        {
-            this.log.info("Success!");
-        }
-        else
-        {
-            const json = await response.json();
-            throw new HttpError(json ? json.msg : "unknown", response);
-        }
-        return this.getResult();
     }
 
     _getUrl(path, params = {})
@@ -126,7 +144,8 @@ export class CablesUpload extends CablesModule
         const absoluteLocations = [];
         givenLocations.forEach((loc) =>
         {
-            absoluteLocations.push(path.resolve(loc));
+            const givenLocation = loc.trim();
+            if (givenLocation) absoluteLocations.push(path.resolve(loc));
         });
         return absoluteLocations;
     }

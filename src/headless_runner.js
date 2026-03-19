@@ -22,7 +22,7 @@ export class CablesHeadlessRunner
     constructor(patchFile, runningAsCli = true)
     {
         this._cli = runningAsCli;
-        this.log = new Logger(!this._cli);
+        this.log = new Logger({"silent": !this._cli});
         this._patchFile = patchFile;
 
         this._dir = path.dirname(patchFile);

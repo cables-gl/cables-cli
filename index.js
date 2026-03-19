@@ -17,7 +17,16 @@ import { UsageError } from "./src/usage_error.js";
  * @property {Boolean} [visible]
  */
 
-export class Cables extends CablesModule
+const runningAsCli = (() =>
+{
+    if (!process?.argv[1]) return false;
+    const thisUrl = new URL(import.meta.url);
+    const argv1Real = fs.realpathSync(process.argv[1]);       // resolve .bin/cables -> .../index.js
+    const argv1Url = pathToFileURL(argv1Real);
+    return thisUrl.href === argv1Url.href;                 // true only when invoked via that bin/script
+})();
+
+class Cables extends CablesModule
 {
 
     static COMMAND_NAME_EXPORT = "export";
@@ -149,21 +158,9 @@ export class Cables extends CablesModule
     }
 }
 
-// TODO: remove this before release, kept for backwards compatibility of former dev versions
-export { Cables as CablesCLI };
-
-const runningAsCli = (() =>
-{
-    if (!process?.argv[1]) return false;
-    const thisUrl = new URL(import.meta.url);
-    const argv1Real = fs.realpathSync(process.argv[1]);       // resolve .bin/cables -> .../index.js
-    const argv1Url = pathToFileURL(argv1Real);
-    return thisUrl.href === argv1Url.href;                 // true only when invoked via that bin/script
-})();
-
-const cli = new Cables(runningAsCli);
 if (runningAsCli)
 {
+    const cli = new Cables(runningAsCli);
     cli.run()
         .then((result) =>
         {
@@ -179,3 +176,5 @@ if (runningAsCli)
             if (!help) cli.log.error(e.toString());
         });
 }
+
+export { Cables };

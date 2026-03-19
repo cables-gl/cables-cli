@@ -23,6 +23,7 @@ import fs from "fs";
 /**
  * @typedef {Object} ModuleRunResult
  * @property {Boolean} success
+ * @property {LogEntry} [error] last error with full information
  * @property {Array<LogEntry>} log array of lines logged during run
  */
 
@@ -52,6 +53,7 @@ export class CablesModule
     static MODULE_OPTION_BASE_URL = "url";
     static MODULE_OPTION_HELP = "help";
     static MODULE_OPTION_USE_DEV = "dev";
+    static MODULE_OPTION_LOGLEVEL = "loglevel";
 
     /**
      *
@@ -60,7 +62,7 @@ export class CablesModule
     constructor(runningAsCli = false)
     {
         this._cli = runningAsCli;
-        this.log = new Logger(!this._cli);
+        this.log = new Logger({ "silent": !this._cli });
         this._baseUrl = CablesModule.CABLES_URL;
 
         this._localConfigFileLocation = null;
@@ -97,14 +99,21 @@ export class CablesModule
                 "type": String,
             },
             {
-                "name": CablesModule.MODULE_OPTION_COMMAND,
-                "defaultOption": true,
+                "name": CablesModule.MODULE_OPTION_LOGLEVEL,
+                "description": "Loglevel",
+                "type": String,
+                "typeLabel": "<debug|verbose|{underline info}|warn|error>",
             },
             {
                 "name": CablesModule.MODULE_OPTION_HELP,
                 "alias": "h",
                 "type": Boolean,
             },
+            {
+                "name": CablesModule.MODULE_OPTION_COMMAND,
+                "defaultOption": true,
+            },
+
         ];
     }
 
@@ -156,17 +165,31 @@ export class CablesModule
      * @throws UsageError
      * @return {Promise<boolean>}
      */
-    async initModuleOptions(options = {})
+    async initModule(options = {})
     {
         options = this._convertLibraryOptions(options);
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
         moduleOptions = { ...options, ...moduleOptions };
         this._moduleOptions = moduleOptions;
+
+        if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
         if (moduleOptions[CablesModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesModule.CABLES_DEV_URL;
         if (moduleOptions[CablesModule.MODULE_OPTION_BASE_URL]) this._baseUrl = new URL(moduleOptions[CablesModule.MODULE_OPTION_BASE_URL]);
         if (this._baseUrl.hostname.includes("local"))
         {
+            // add this to suppress the warning for self-signed certificates when run locally
+            const originalEmit = process.emit;
+            process.emit = (name, ...args) =>
+            {
+                const data = args[0];
+                if (name === "warning" && typeof data === "object" && data.message && data.message.includes("NODE_TLS_REJECT_UNAUTHORIZED"))
+                {
+                    this.log.verbose(data.message);
+                    return;
+                }
+                return originalEmit.apply(process, arguments);
+            };
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
         if (moduleOptions[CablesModule.MODULE_OPTION_COMMAND])
@@ -215,14 +238,16 @@ export class CablesModule
             }
             else
             {
-                const commandNames = Cables.getCommands(true).map((c) => { return c.name; });
+                const commandNames = Cables.getCommands(true)
+                    .map((c) => { return c.name; });
                 const message = "Unknown command '" + moduleOptions[CablesModule.MODULE_OPTION_COMMAND] + "', use one of: " + commandNames.join(", ");
                 throw new UsageError(message);
             }
         }
         else
         {
-            const commandNames = Cables.getCommands(true).map((c) => { return c.name; });
+            const commandNames = Cables.getCommands(true)
+                .map((c) => { return c.name; });
             const message = "No command given, use one of: " + commandNames.join(",");
             throw new UsageError(message);
         }
@@ -235,7 +260,7 @@ export class CablesModule
      */
     async run(options = {})
     {
-        await this.initModuleOptions(options);
+        await this.initModule(options);
         return this.getResult();
     }
 
@@ -247,10 +272,14 @@ export class CablesModule
      */
     getResult(success = true, logEntries = [])
     {
-        return {
-            "success": success,
-            "log": [...this.log.getEntries(), ...logEntries],
-        };
+        const log = [...this.log.getEntries(), ...logEntries];
+        const result = { "success": success };
+        if (success === false)
+        {
+            result.error = log[log.length - 1];
+        }
+        result.log = log;
+        return result;
     }
 
     /**
@@ -288,7 +317,8 @@ export class CablesModule
      */
     getCommand(name)
     {
-        return Cables.getCommands().find((c) => { return c.name === name;});
+        return Cables.getCommands()
+            .find((c) => { return c.name === name;});
     }
 
     /**
@@ -298,6 +328,49 @@ export class CablesModule
     getApiKey()
     {
         return this.getModuleOption(CablesModule.MODULE_OPTION_API_KEY);
+    }
+
+    getHttpResponseErrorMessage(responseJson, responseStatus) {
+        if (responseStatus !== 200)
+        {
+            let errMessage;
+            let errorText = "";
+            try {
+                const errorJson = responseJson;
+                errorText = errorJson.msg || JSON.stringify(errorJson);
+            }catch (e) {
+                errorText = responseJson;
+                // use text, see above
+            }
+            switch (responseStatus)
+            {
+            case 400:
+                errMessage = "Bad request: " + errorText;
+                break;
+            case 403:
+            case 401:
+                errMessage = "Insufficient rights for " + this.getCommandName();
+                if(errorText && errorText === "ERR_INVALID_APIKEY") {
+                    errMessage += ": invalid apikey";
+                }
+                break;
+            case 404:
+                errMessage = "Unknown patch, check patchid: " + this._moduleOptions.patch + " (" + this._moduleOptions.url + "/" + this._moduleOptions.patch + ")";
+                break;
+            case 413:
+                errMessage = "Over " + this.getCommandName() + " quota";
+                break;
+            case 500:
+                errMessage = "Unknown server-error, maybe try again...";
+                break;
+            default:
+                errMessage = "Invalid response:";
+                errMessage += "code: " + responseStatus + "\n";
+                errMessage += "body: " + errorText;
+                break;
+            }
+            return errMessage;
+        }
     }
 
     _getModuleOptionDefinitions()
@@ -312,7 +385,8 @@ export class CablesModule
         try
         {
             const rawFile = fs.readFileSync(this._localConfigFileLocation);
-            if(rawFile) {
+            if (rawFile)
+            {
                 configFromFile = parse(rawFile.toString());
             }
         } catch (e)
