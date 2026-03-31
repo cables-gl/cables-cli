@@ -4,6 +4,9 @@
     "description": "cables command line tool",
     "main": "index.js",
     "type": "module",
+    "engines": {
+        "node": "20.13.1"
+    },
     "scripts": {
         "clean": "rimraf test/",
         "test": "run-s clean _test",
@@ -30,7 +33,7 @@
     ],
     "license": "MIT",
     "dependencies": {
-        "ini": "6.0.0",
+        "ini": "5.0.0",
         "command-line-args": "6.0.1",
         "command-line-usage": "7.0.4",
         "prompt": "1.3.0",
