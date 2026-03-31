@@ -171,6 +171,7 @@ export class CablesModule
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
         moduleOptions = { ...options, ...moduleOptions };
+        if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
 
         if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
@@ -330,15 +331,18 @@ export class CablesModule
         return this.getModuleOption(CablesModule.MODULE_OPTION_API_KEY);
     }
 
-    getHttpResponseErrorMessage(responseJson, responseStatus) {
+    getHttpResponseErrorMessage(responseJson, responseStatus)
+    {
         if (responseStatus !== 200)
         {
             let errMessage;
             let errorText = "";
-            try {
+            try
+            {
                 const errorJson = responseJson;
                 errorText = errorJson.msg || JSON.stringify(errorJson);
-            }catch (e) {
+            } catch (e)
+            {
                 errorText = responseJson;
                 // use text, see above
             }
@@ -350,7 +354,8 @@ export class CablesModule
             case 403:
             case 401:
                 errMessage = "Insufficient rights for " + this.getCommandName();
-                if(errorText && errorText === "ERR_INVALID_APIKEY") {
+                if (errorText && errorText === "ERR_INVALID_APIKEY")
+                {
                     errMessage += ": invalid apikey";
                 }
                 break;
