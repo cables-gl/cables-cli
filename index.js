@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 import process from "node:process";
 import fs from "fs";
 import { CablesExport } from "./src/export.js";
+import { CablesImport} from "./src/import.js";
 import { CablesUpload } from "./src/upload.js";
 import { CablesHeadless } from "./src/headless.js";
 import { CablesModule } from "./src/module.js";
@@ -30,6 +31,7 @@ class Cables extends CablesModule
 {
 
     static COMMAND_NAME_EXPORT = "export";
+    static COMMAND_NAME_IMPORT = "import";
     static COMMAND_NAME_UPLOAD = "upload";
     static COMMAND_NAME_HEADLESS = "headless";
 
@@ -42,6 +44,11 @@ class Cables extends CablesModule
             "name": Cables.COMMAND_NAME_EXPORT,
             "description": "Export patches from " + CablesModule.CABLES_URL.hostname,
             "class": CablesExport,
+        },
+        {
+            "name": Cables.COMMAND_NAME_IMPORT,
+            "description": "Import patches to " + CablesModule.CABLES_URL.hostname,
+            "class": CablesImport,
         },
         {
             "name": Cables.COMMAND_NAME_UPLOAD,
@@ -132,6 +139,15 @@ class Cables extends CablesModule
         return this.run(options);
     }
 
+    /** import cables patch
+     *
+     */
+    async import(options = {})
+    {
+        options.command = Cables.COMMAND_NAME_IMPORT;
+        return this.run(options);
+    }
+
     /**
      * upload assets to cables patch
      *
@@ -162,10 +178,6 @@ if (runningAsCli)
 {
     const cli = new Cables(runningAsCli);
     cli.run()
-        .then((result) =>
-        {
-            cli.log.info("success", result.success);
-        })
         .catch((e) =>
         {
             const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);

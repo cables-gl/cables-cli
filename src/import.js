@@ -1,0 +1,220 @@
+import { CablesModule } from "./module.js";
+import path from "path";
+import fs from "fs";
+import archiver from "archiver";
+import { HttpError } from "./http_error.js";
+import process from "node:process";
+import { ApiError } from "./api_error.js";
+
+/**
+ * @typedef {ModuleOptions<ExportModuleOptions>} ExportModuleOptions
+ *
+ * @property {String} patch
+ * @property {("html"|"patch"|"code")} [type="html"]
+ * @property {String|null} [destination]
+ * @property {Boolean|null} [index=true]
+ * @property {Boolean|null} [extract=true]
+ * @property {String|null} [jsonfilename]
+ * @property {Boolean|null} [combinejs=true]
+ * @property {Boolean|null} [dev=false]
+ * @property {("auto"|"all"|"none")} [assets="auto"]
+ * @property {Boolean|null} [flat=false]
+ * @property {Boolean|null} [minify=true]
+ * @property {Boolean|null} [sourcemaps=false]
+ * @property {Boolean|null} [minifyglsl=false]
+ */
+export class CablesImport extends CablesModule
+{
+    static MODULE_OPTION_USE_DEV = "dev";
+    static MODULE_OPTION_IMPORT_URL = "importurl";
+    static MODULE_OPTION_CONVERT_OPS = "convert";
+    static MODULE_OPTION_PATCH_DIR = "dir";
+
+    constructor(runningAsCli = false)
+    {
+        super(runningAsCli);
+
+        /**
+         * @type Array<CliOptionDefinition>
+         * @private
+         */
+        this._cliOptions = [
+            {
+                "name": CablesImport.MODULE_OPTION_PATCH_DIR,
+                "alias": "d",
+                "description": "Folder with the patch to be imported",
+                "type": String,
+                "typeLabel": "{underline dir}",
+                "required": true,
+            },
+            {
+                "name": CablesImport.MODULE_OPTION_IMPORT_URL,
+                "description": "Specify URL of cables endpoint to import to (for local development)",
+                "type": String,
+                "typeLabel": "URL",
+                "defaultValue": this._baseUrl
+            },
+            {
+                "name": CablesImport.MODULE_OPTION_CONVERT_OPS,
+                "description": "Import team- and user-ops as new ops",
+                "type": String,
+                "typeLabel": "<{underline html}|patch|code>",
+                "defaultValue": false,
+            }
+        ];
+    }
+
+    async initModule(options = {})
+    {
+        const init =  super.initModule(options);
+        if (this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL).includes("local"))
+        {
+            // add this to suppress the warning for self-signed certificates when run locally
+            const originalEmit = process.emit;
+            process.emit = (name, ...args) =>
+            {
+                const data = args[0];
+                if (name === "warning" && typeof data === "object" && data.message && data.message.includes("NODE_TLS_REJECT_UNAUTHORIZED"))
+                {
+                    this.log.verbose(data.message);
+                    return;
+                }
+                return originalEmit.apply(process, arguments);
+            };
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+        }
+        return init;
+    }
+
+    /**
+     *
+     * @param {ModuleOptions<ExportModuleOptions>} [options]
+     * @return Promise<ModuleRunResult>
+     */
+    async run(options = {})
+    {
+        try
+        {
+            await super.run(options);
+            const zipFile = './patch.zip';
+            const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
+            await this._createPatchZip(patchDir, zipFile);
+            const result = await this._uploadZip(zipFile);
+            if(result && result.data?.projectId) {
+                this.log.info("Success, imported projecturl:", this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL) + "/p/" + result.data.projectId)
+            }
+            return this.getResult();
+
+        } catch (e)
+        {
+            this.log.error(e.message, e.cause);
+            return this.getResult(false);
+        }
+
+    }
+
+    /**
+     *
+     * @return {String}
+     */
+    getCommandName()
+    {
+        return "export";
+    }
+
+    /**
+     *
+     * @return {Boolean}
+     */
+    requireApiKey()
+    {
+        return true;
+    }
+
+    _getImportUrl()
+    {
+        const url = new URL("/api/project/import/zip", this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL));
+        if (this.getModuleOption(CablesImport.MODULE_OPTION_CONVERT_OPS)) url.searchParams.set("convertOps", "true");
+        return url;
+    }
+
+    async _createPatchZip(sourceDir, targetZip) {
+        return new Promise((resolve, reject) => {
+            const output = fs.createWriteStream(targetZip);
+            const archive = archiver('zip', {
+                zlib: { level: 0 } // Sets the compression level.
+            });
+
+            output.on("close", () => {
+                this.log.debug(archive.pointer() + ' total bytes');
+                this.log.debug('archiver has been finalized and the output file descriptor has closed.');
+                resolve(this.getResult(true));
+            });
+
+            output.on("error", (err) => {
+                this.log.error("Error during creation of zip", targetZip, err);
+                reject(this.getResult(false));
+            });
+
+            // good practice to catch warnings (ie stat failures and other non-blocking errors)
+            archive.on('warning', (err) => {
+                if (err.code === 'ENOENT') {
+                    this.log.warn(err);
+                } else {
+                    this.log.error(err);
+                    reject(this.getResult(false));
+                }
+            });
+
+            // good practice to catch this error explicitly
+            archive.on('error', (err) => {
+                this.log.error(err);
+                reject(this.getResult(false));
+            });
+
+            // pipe archive data to the file
+            archive.pipe(output);
+
+            // append files from a sub-directory, putting its contents at the root of archive
+            archive.directory(sourceDir, "");
+
+            // finalize the archive (ie we are done appending files but streams have to finish yet)
+            // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
+            archive.finalize();
+        });
+    }
+
+    async _uploadZip(zipPath)
+    {
+        const url = this._getImportUrl();
+        const form = new FormData();
+        let pos = 0;
+        const file = await fs.openAsBlob(zipPath, { "type": "application/zip" });
+        form.append(String(pos), file, path.basename(zipPath));
+
+        this.log.info("Uploading to", url.href, "...");
+        const reqOptions = {
+            "method": "POST",
+            "headers": { "apikey": this.getApiKey() },
+            "body": form,
+        };
+        const response = await fetch(url, reqOptions);
+        if (response.ok && response.status === 200)
+        {
+            const json = await response.json();
+            if(json.data?.problems && Object.values(json.data.problems).length > 0) {
+                Object.values(json.data.problems).forEach((problem) => {
+                    this.log.error(problem)
+                })
+                throw new ApiError("Import error", response, Object.values(json.data.problems));
+            }
+            return json;
+        }
+        else
+        {
+            const json = await response.json();
+            const msg = this.getHttpResponseErrorMessage(json, response.status);
+            throw new HttpError(msg, response);
+        }
+    }
+}

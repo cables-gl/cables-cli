@@ -23,6 +23,8 @@ export class HttpError extends Error {
         case 400:
             errMessage = "no rights to patch, invalid api key";
             break;
+        case 200:
+            break;
         default:
             errMessage = "invalid response\n";
             errMessage += "code: " + this.response.status + "\n";
