@@ -204,28 +204,7 @@ export class CablesModule
                 }
                 else
                 {
-                    if (this.requireApiKey())
-                    {
-                        if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
-                        {
-                            if (this._localConfig.apikey) moduleOptions[CablesModule.MODULE_OPTION_API_KEY] = this._localConfig.apikey;
-                        }
-                        if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
-                        {
-                            if (this._cli)
-                            {
-                                const result = await prompt.get(CablesModule.MODULE_OPTION_API_KEY);
-                                this._saveToLocalConfig(CablesModule.MODULE_OPTION_API_KEY, result[CablesModule.MODULE_OPTION_API_KEY]);
-                                moduleOptions[CablesModule.MODULE_OPTION_API_KEY] = result[CablesModule.MODULE_OPTION_API_KEY];
-                            }
-                            if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
-                            {
-                                throw new UsageError("Cables API-Key is required to run command '" + command.name + "'");
-                            }
-                        }
-                    }
-
-
+                    await this.assureApiKey(moduleOptions, this._baseUrl);
                     const requiredOptions = moduleOptionDefinitions.filter((d) => { return d.required;});
                     requiredOptions.forEach((ro) =>
                     {
@@ -331,6 +310,42 @@ export class CablesModule
         return this.getModuleOption(CablesModule.MODULE_OPTION_API_KEY);
     }
 
+    /**
+     *
+     * @param {ModuleOptions} moduleOptions
+     * @param {URL} url
+     * @return {Promise<void>}
+     */
+    async assureApiKey(moduleOptions, url) {
+        if (!this.requireApiKey()) return;
+        if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
+        {
+            if (this._localConfig[url.hostname]) moduleOptions[CablesModule.MODULE_OPTION_API_KEY] = this._localConfig[url.hostname];
+        }
+        if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
+        {
+            if (this._cli)
+            {
+                const promptSchema = {
+                    "properties": {
+                        "apikey": {
+                            "type": "string",
+                            "description": "API-Key for " + url.hostname,
+                            "required": true
+                        }
+                    }
+                }
+                const result = await prompt.get(promptSchema);
+                this._saveToLocalConfig(url.hostname, result[CablesModule.MODULE_OPTION_API_KEY]);
+                moduleOptions[CablesModule.MODULE_OPTION_API_KEY] = result[CablesModule.MODULE_OPTION_API_KEY];
+            }
+            if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
+            {
+                throw new UsageError("Cables API-Key is required to run command '" + this.getCommandName() + "'");
+            }
+        }
+    }
+
     getHttpResponseErrorMessage(responseJson, responseStatus)
     {
         if (responseStatus !== 200)
@@ -405,6 +420,8 @@ export class CablesModule
     {
         if (this._cli)
         {
+            delete this._localConfig[CablesModule.MODULE_OPTION_API_KEY]; // old format
+            delete this._localConfig["api-key"]; // old format
             this._localConfig[key] = value;
             try
             {

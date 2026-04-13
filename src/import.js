@@ -26,7 +26,6 @@ import { ApiError } from "./api_error.js";
 export class CablesImport extends CablesModule
 {
     static MODULE_OPTION_USE_DEV = "dev";
-    static MODULE_OPTION_IMPORT_URL = "importurl";
     static MODULE_OPTION_CONVERT_OPS = "convert";
     static MODULE_OPTION_PATCH_DIR = "dir";
 
@@ -48,13 +47,6 @@ export class CablesImport extends CablesModule
                 "required": true,
             },
             {
-                "name": CablesImport.MODULE_OPTION_IMPORT_URL,
-                "description": "Specify URL of cables endpoint to import to (for local development)",
-                "type": String,
-                "typeLabel": "URL",
-                "defaultValue": this._baseUrl
-            },
-            {
                 "name": CablesImport.MODULE_OPTION_CONVERT_OPS,
                 "description": "Import team- and user-ops as new ops",
                 "type": String,
@@ -63,29 +55,6 @@ export class CablesImport extends CablesModule
             }
         ];
     }
-
-    async initModule(options = {})
-    {
-        const init =  super.initModule(options);
-        if (this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL).includes("local"))
-        {
-            // add this to suppress the warning for self-signed certificates when run locally
-            const originalEmit = process.emit;
-            process.emit = (name, ...args) =>
-            {
-                const data = args[0];
-                if (name === "warning" && typeof data === "object" && data.message && data.message.includes("NODE_TLS_REJECT_UNAUTHORIZED"))
-                {
-                    this.log.verbose(data.message);
-                    return;
-                }
-                return originalEmit.apply(process, arguments);
-            };
-            process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-        }
-        return init;
-    }
-
     /**
      *
      * @param {ModuleOptions<ExportModuleOptions>} [options]
@@ -101,7 +70,7 @@ export class CablesImport extends CablesModule
             await this._createPatchZip(patchDir, zipFile);
             const result = await this._uploadZip(zipFile);
             if(result && result.data?.projectId) {
-                this.log.info("Success, imported projecturl:", this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL) + "/p/" + result.data.projectId)
+                this.log.info("Success, imported projecturl:", this._baseUrl + "/p/" + result.data.projectId)
             }
             return this.getResult();
 
@@ -119,7 +88,7 @@ export class CablesImport extends CablesModule
      */
     getCommandName()
     {
-        return "export";
+        return "import";
     }
 
     /**
@@ -133,7 +102,7 @@ export class CablesImport extends CablesModule
 
     _getImportUrl()
     {
-        const url = new URL("/api/project/import/zip", this.getModuleOption(CablesImport.MODULE_OPTION_IMPORT_URL));
+        const url = new URL("/api/project/import/zip", this._baseUrl.toString());
         if (this.getModuleOption(CablesImport.MODULE_OPTION_CONVERT_OPS)) url.searchParams.set("convertOps", "true");
         return url;
     }
