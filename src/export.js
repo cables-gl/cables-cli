@@ -77,16 +77,16 @@ export class CablesExport extends CablesModule
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
                 "alias": "i",
-                "description": "Will include/overwrite index.html in the export",
-                "type": Boolean,
-                "defaultValue": true,
+                "description": "Will include index.html in the export.",
+                "type": String,
+                "defaultValue": "true",
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXTRACT_ZIP,
                 "alias": "x",
                 "description": "Extract the downloaded zip file",
-                "type": Boolean,
-                "defaultValue": true,
+                "type": String,
+                "defaultValue": "true",
             },
             {
                 "name": CablesExport.MODULE_OPTION_JSON_FILENAME,
@@ -99,8 +99,8 @@ export class CablesExport extends CablesModule
                 "name": CablesExport.MODULE_OPTION_COMBINE_JS,
                 "alias": "c",
                 "description": "Combine javascript and json into a single patch.js",
-                "type": Boolean,
-                "defaultValue": true,
+                "type": String,
+                "defaultValue": "true",
             },
             {
                 "name": CablesExport.MODULE_OPTION_USE_DEV,
@@ -126,8 +126,8 @@ export class CablesExport extends CablesModule
                 "name": CablesExport.MODULE_OPTION_MINIFY,
                 "alias": "m",
                 "description": "Minify code",
-                "type": Boolean,
-                "defaultValue": true,
+                "type": String,
+                "defaultValue": "true",
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
@@ -172,7 +172,7 @@ export class CablesExport extends CablesModule
                     "headers": { "apikey": this.getApiKey() },
                 };
                 this.log.info("requesting export...");
-                this.log.info("downloading from ", url.href, "...");
+                this.log.info("downloading from", url.href, "...");
                 const response = await fetch(url, reqOptions);
                 if (response.ok)
                 {
@@ -265,19 +265,20 @@ export class CablesExport extends CablesModule
     {
         const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
         url.searchParams.set("type", this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE));
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS)) url.searchParams.set("combineJs", "true");
-        if (!this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP)) url.searchParams.set("noExtract", "true");
+        url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
         if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) url.searchParams.set("dev", "true");
-        if (!this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML)) url.searchParams.set("noIndex", "true");
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === "false") url.searchParams.set("removeIndexHtml", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME))
         {
             const givenName = this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME);
             const jsonName = path.basename(givenName, path.extname(givenName));
             url.searchParams.set("jsonFilename", jsonName);
         }
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_FLAT_EXPORT)) url.searchParams.set("noSubdirs", "true");
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_FLAT_EXPORT)) url.searchParams.set("flat", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_SOURCEMAPS)) url.searchParams.set("sourcemaps", "true");
-        if (!this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY)) url.searchParams.set("noMinify", "true");
+
+        url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
+
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
         {
