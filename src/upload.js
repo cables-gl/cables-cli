@@ -1,5 +1,5 @@
 import path from "path";
-import fs from "fs";
+import md5File from "md5-file";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { UsageError } from "./usage_error.js";
@@ -16,6 +16,7 @@ export class CablesUpload extends CablesModule
 
     static MODULE_OPTION_PATCH_ID = "patch";
     static MODULE_OPTION_UPLOAD_FILES = "file";
+    static MODULE_OPTION_NEW_ONLY = "newonly";
 
     constructor(runningAsCli = false)
     {
@@ -41,6 +42,11 @@ export class CablesUpload extends CablesModule
                 "multiple": true,
                 "typeLabel": "{underline files[]}",
                 "required": true,
+            },
+            {
+                "name": CablesUpload.MODULE_OPTION_NEW_ONLY,
+                "description": "Check MD5 of local files and upload new ones only",
+                "type": Boolean,
             },
         ];
     }
@@ -73,12 +79,62 @@ export class CablesUpload extends CablesModule
         {
             await super.run(options);
 
+            const patchId = this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID);
+            const newOnly = this.getModuleOption(CablesUpload.MODULE_OPTION_NEW_ONLY);
+
             const givenFiles = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
-            const url = this._getUrl("/api/project/" + this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID) + "/file");
-            const filePaths = this._getFileLocations();
+            let uploadFiles = [];
+            if (newOnly)
+            {
+                const md5Url = this._getUrl("/api/project/" + patchId + "/files?hashes=true");
+                const md5Options = {
+                    "method": "GET",
+                    "headers": { "apikey": this.getApiKey() },
+                };
+                const md5response = await fetch(md5Url, md5Options);
+                if (md5response.ok && md5response.status === 200)
+                {
+                    const remoteFiles = await md5response.json();
+                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary;});
+                    givenFiles.forEach((givenFile) =>
+                    {
+                        const baseName = path.basename(givenFile);
+                        const localHash = md5File.sync(givenFile);
+                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName;});
+                        if (remoteFile && remoteFile.hash)
+                        {
+                            if (localHash !== remoteFile.hash)
+                            {
+                                uploadFiles.push(givenFile);
+                            }
+                            else
+                            {
+                                this.log.info("Skipping upload of", remoteFile.name, "same hash");
+                            }
+                        }
+                        else
+                        {
+                            this.log.info("Could not find", remoteFile.name, "in patch, treating as new.");
+                            uploadFiles.push(givenFile);
+                        }
+                    });
+                }
+                else
+                {
+                    this.log.error("Failed to get list of md5 hashes, treating all uploads as new!");
+                    uploadFiles = givenFiles;
+                }
+            }
+            else
+            {
+                uploadFiles = givenFiles;
+            }
+
+            const url = this._getUrl("/api/project/" + patchId + "/file");
+            const filePaths = this._getFileLocations(uploadFiles);
             if (filePaths.length === 0)
             {
-                throw new UsageError("No files given for upload! given file(s) were \"" + givenFiles.join(",") + "\"");
+                throw new UsageError("No files to upload! Given file(s) were \"" + givenFiles.join(",") + "\"");
             }
 
             const form = new FormData();
@@ -121,7 +177,7 @@ export class CablesUpload extends CablesModule
             return this.getResult();
         } catch (e)
         {
-            this.log.error(e.message, e.cause);
+            this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
         }
 
@@ -138,9 +194,9 @@ export class CablesUpload extends CablesModule
         return url;
     }
 
-    _getFileLocations()
+    _getFileLocations(files = null)
     {
-        const givenLocations = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
+        const givenLocations = files || this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
         const absoluteLocations = [];
         givenLocations.forEach((loc) =>
         {

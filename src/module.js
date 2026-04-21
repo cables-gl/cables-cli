@@ -219,7 +219,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             {
                 if (this.getCommandName() && moduleOptions[CablesModule.MODULE_OPTION_HELP])
                 {
-                    this.log.info(this.getUsageInfo());
+                    throw new UsageError(this.getUsageInfo());
                 }
                 else
                 {

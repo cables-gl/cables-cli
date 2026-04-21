@@ -97,7 +97,7 @@ class Cables extends CablesModule
      */
     getCommandName()
     {
-        return "cables";
+        return "";
     }
 
     /**

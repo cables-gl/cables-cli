@@ -65,7 +65,7 @@ export class CablesHeadless extends CablesModule
             }
         } catch (e)
         {
-            this.log.error(e.message, e.cause);
+            this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
         }
 
