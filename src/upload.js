@@ -1,5 +1,6 @@
 import path from "path";
 import md5File from "md5-file";
+import fs from "fs";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { UsageError } from "./usage_error.js";
@@ -132,50 +133,56 @@ export class CablesUpload extends CablesModule
             }
 
             const url = this._getUrl("/api/project/" + patchId + "/file");
+
             const filePaths = this._getFileLocations(uploadFiles);
-            if (filePaths.length === 0)
+            if (givenFiles.length === 0)
             {
                 throw new UsageError("No files to upload! Given file(s) were \"" + givenFiles.join(",") + "\"");
             }
 
-            const form = new FormData();
-            let pos = 0;
-            for (const filePath of filePaths)
-            {
-                if (filePath)
+            if(filePaths.length > 0) {
+                const form = new FormData();
+                let pos = 0;
+                for (const filePath of filePaths)
                 {
-                    const file = await fs.openAsBlob(filePath);
-                    form.append(String(pos), file, path.basename(filePath));
-                    pos++;
+                    if (filePath)
+                    {
+                        const file = await fs.openAsBlob(filePath);
+                        form.append(String(pos), file, path.basename(filePath));
+                        pos++;
+                    }
                 }
+
+                if (filePaths.length > 1)
+                {
+                    this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
+                }
+                else
+                {
+                    this.log.info("Uploading", filePaths[0].length, "to", url.href, "...");
+
+                }
+                const reqOptions = {
+                    "method": "POST",
+                    "headers": { "apikey": this.getApiKey() },
+                    "body": form,
+                };
+                const response = await fetch(url, reqOptions);
+                if (response.ok && response.status === 200)
+                {
+                    this.log.info("Success!");
+                }
+                else
+                {
+                    const json = await response.json();
+                    const msg = this.getHttpResponseErrorMessage(json, response.status);
+                    throw new HttpError(msg, response);
+                }
+                return this.getResult();
+            }else{
+                return this.getResult();
             }
 
-            if (filePaths.length > 1)
-            {
-                this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
-            }
-            else
-            {
-                this.log.info("Uploading to", url.href, "...");
-
-            }
-            const reqOptions = {
-                "method": "POST",
-                "headers": { "apikey": this.getApiKey() },
-                "body": form,
-            };
-            const response = await fetch(url, reqOptions);
-            if (response.ok && response.status === 200)
-            {
-                this.log.info("Success!");
-            }
-            else
-            {
-                const json = await response.json();
-                const msg = this.getHttpResponseErrorMessage(json, response.status);
-                throw new HttpError(msg, response);
-            }
-            return this.getResult();
         } catch (e)
         {
             this.log.error(e.message, e.cause ? e.cause : "");
