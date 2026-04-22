@@ -9,6 +9,7 @@ import { UsageError } from "./usage_error.js";
  *
  * @property {String} patch
  * @property {String|Array} file
+ * @property {Boolean} newonly
  */
 
 export class CablesUpload extends CablesModule
