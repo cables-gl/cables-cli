@@ -13,6 +13,15 @@ import { UsageError } from "./usage_error.js";
  * @property {Boolean} newonly
  */
 
+
+/**
+ * @typedef {ModuleRunResult<UploadModuleRunResult>} UploadModuleRunResult
+ * @property {Boolean} success
+ * @property {LogEntry} [error] last error with full information
+ * @property {Array<LogEntry>} log array of lines logged during run
+ * @property {Array<String>} skipped array of filenames skipped during upload
+ */
+
 export class CablesUpload extends CablesModule
 {
 
@@ -73,7 +82,7 @@ export class CablesUpload extends CablesModule
 
     /**
      * @param {ModuleOptions<UploadModuleOptions>} [options]
-     * @return Promise<ModuleRunResult>
+     * @return Promise<UploadModuleRunResult>
      */
     async run(options = {})
     {
@@ -86,6 +95,7 @@ export class CablesUpload extends CablesModule
 
             const givenFiles = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
             let uploadFiles = [];
+            let skippedFiles = [];
             if (newOnly)
             {
                 const md5Url = this._getUrl("/api/project/" + patchId + "/files?hashes=true");
@@ -93,7 +103,14 @@ export class CablesUpload extends CablesModule
                     "method": "GET",
                     "headers": { "apikey": this.getApiKey() },
                 };
-                const md5response = await fetch(md5Url, md5Options);
+                let md5response = {
+                    "ok": false
+                }
+                try {
+                    md5response = await fetch(md5Url, md5Options);
+                }catch (e) {
+                    // error is handled below in else case
+                }
                 if (md5response.ok && md5response.status === 200)
                 {
                     const remoteFiles = await md5response.json();
@@ -111,19 +128,19 @@ export class CablesUpload extends CablesModule
                             }
                             else
                             {
+                                skippedFiles.push(givenFile);
                                 this.log.info("Skipping upload of", remoteFile.name, "same hash");
                             }
                         }
                         else
                         {
-                            this.log.info("Could not find", remoteFile.name, "in patch, treating as new.");
                             uploadFiles.push(givenFile);
                         }
                     });
                 }
                 else
                 {
-                    this.log.error("Failed to get list of md5 hashes, treating all uploads as new!");
+                    this.log.warn("Failed to get list of md5 hashes, treating all uploads as new!");
                     uploadFiles = givenFiles;
                 }
             }
@@ -178,9 +195,9 @@ export class CablesUpload extends CablesModule
                     const msg = this.getHttpResponseErrorMessage(json, response.status);
                     throw new HttpError(msg, response);
                 }
-                return this.getResult();
+                return this.getResult(true, [], skippedFiles);
             }else{
-                return this.getResult();
+                return this.getResult(true, [], skippedFiles);
             }
 
         } catch (e)
@@ -189,6 +206,18 @@ export class CablesUpload extends CablesModule
             return this.getResult(false);
         }
 
+    }
+
+    /**
+     *
+     * @param {Boolean} success
+     * @param {Array<LogEntry>} logEntries
+     * @return UploadModuleRunResult
+     */
+    getResult(success = true, logEntries = [], skippedFiles = []) {
+        const result = super.getResult(success, logEntries);
+        if(skippedFiles && skippedFiles.length > 0) result.skipped = skippedFiles;
+        return result;
     }
 
     _getUrl(path, params = {})

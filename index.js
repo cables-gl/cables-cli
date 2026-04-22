@@ -152,7 +152,7 @@ class Cables extends CablesModule
      * upload assets to cables patch
      *
      * @param {UploadModuleOptions} [options]
-     * @return {Promise<ModuleRunResult>}
+     * @return {Promise<UploadModuleRunResult>}
      */
     async upload(options = {})
     {
