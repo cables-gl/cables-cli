@@ -22,20 +22,20 @@ import fs from "fs";
 
 /**
  * @typedef {Object} ModuleRunResult
- * @property {Boolean} success
- * @property {LogEntry} [error] last error with full information
- * @property {Array<LogEntry>} log array of lines logged during run
+ * @property {boolean} success
+ * @property {import("./logger").LogEntry} [error] last error with full information
+ * @property {Array<import("./logger").LogEntry>} log array of lines logged during run
  */
 
 /**
  * @typedef {Object} CliOptionDefinition
- * @property {String} name
+ * @property {string} name
  * @property {Class} type
- * @property {String} [alias]
- * @property {String} [description]
- * @property {String} [typeLabel]
- * @property {Boolean} [multiple=false]
- * @property {Boolean} [required=false]
+ * @property {string} [alias]
+ * @property {string} [description]
+ * @property {string} [typeLabel]
+ * @property {boolean} [multiple=false]
+ * @property {boolean} [required=false]
  */
 
 /**
@@ -57,7 +57,7 @@ export class CablesModule
 
     /**
      *
-     * @param {Boolean} [runningAsCli=false] are we running via cli or form a library, usually set automatically via context
+     * @param {boolean} [runningAsCli=false] are we running via cli or form a library, usually set automatically via context
      */
     constructor(runningAsCli = false)
     {
@@ -119,7 +119,7 @@ export class CablesModule
 
     /**
      * @abstract
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {
@@ -129,7 +129,7 @@ export class CablesModule
     /**
      * get usage output string for current context
      *
-     * @return {String}
+     * @returns {string}
      */
     getUsageInfo()
     {
@@ -182,7 +182,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
      *
      * @param {ModuleOptions} options
      * @throws UsageError
-     * @return {Promise<boolean>}
+     * @returns {Promise<boolean>}
      */
     async initModule(options = {})
     {
@@ -255,7 +255,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     /**
      * initialize and validate options, then run the cables module
      * @param {ModuleOptions} options
-     * @return {Promise<ModuleRunResult>}
+     * @returns {Promise<ModuleRunResult>}
      */
     async run(options = {})
     {
@@ -265,9 +265,9 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
     /**
      *
-     * @param {Boolean} success
-     * @param {Array<LogEntry>} logEntries
-     * @return ModuleRunResult
+     * @param {boolean} success
+     * @param {Array<import("./logger").LogEntry>} logEntries
+     * @returns {ModuleRunResult}
      */
     getResult(success = true, logEntries = [])
     {
@@ -283,7 +283,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
     /**
      * @abstract
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -292,7 +292,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
     /**
      *
-     * @return {ModuleOptions}
+     * @returns {ModuleOptions}
      */
     getModuleOptions()
     {
@@ -302,7 +302,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     /**
      *
      * @param name
-     * @return {*}
+     * @returns {*}
      */
     getModuleOption(name)
     {
@@ -312,7 +312,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     /**
      *
      * @param name
-     * @return {CommandDefinition}
+     * @returns {CommandDefinition}
      */
     getCommand(name)
     {
@@ -322,7 +322,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getApiKey()
     {
@@ -333,7 +333,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
      *
      * @param {ModuleOptions} moduleOptions
      * @param {URL} url
-     * @return {Promise<void>}
+     * @returns {Promise<void>}
      */
     async assureApiKey(moduleOptions, url) {
         if (!this.requireApiKey()) return;

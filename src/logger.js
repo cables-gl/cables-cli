@@ -3,24 +3,24 @@ import path from "path";
 /**
  * @typedef {Object} LoggerOptions
  * @property {("debug"|"verbose"|"info"|"warn"|"error")} [logLevel] only log messages above the specified level
- * @property {Boolean} [silent] do not output to console, write to entries array only
+ * @property {boolean} [silent] do not output to console, write to entries array only
  */
 
 /**
  * @typedef {Object} LogEntryContext
- * @property {String} line
- * @property {String} index
- * @property {String} clean
- * @property {String} stack
+ * @property {string} line
+ * @property {string} index
+ * @property {string} clean
+ * @property {string} stack
  */
 
 /**
  * @typedef {Object} LogEntry
  * @property {("debug"|"verbose"|"info"|"warn"|"error")} level
  * @property {Date} date
- * @property {String} initiator filename of the initiating module
+ * @property {string} initiator filename of the initiating module
  * @property {LogEntryContext} context
- * @property {String} message
+ * @property {string} message
  */
 
 /* eslint-disable no-console */
@@ -180,7 +180,7 @@ export class Logger
 
     /**
      *
-     * @return {Array<LogEntry>}
+     * @returns {Array<LogEntry>}
      */
     getEntries() {
         return this._entries;
@@ -229,7 +229,7 @@ export class Logger
     /**
      *
      * @param {Array} loggerArguments
-     * @return LogEntryContext
+     * @returns {LogEntryContext}
      * @private
      */
     _getContext(loggerArguments)

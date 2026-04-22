@@ -7,22 +7,34 @@ import { UsageError } from "./usage_error.js";
 import { HttpError } from "./http_error.js";
 
 /**
- * @typedef {ModuleOptions<ExportModuleOptions>} ExportModuleOptions
- *
- * @property {String} patch
+ * @typedef {object} ExportOptionsDaa
+ * @property {string} patch
  * @property {("html"|"patch"|"code")} [type="html"]
- * @property {String|null} [destination]
- * @property {Boolean|null} [index=true]
- * @property {Boolean|null} [extract=true]
- * @property {String|null} [jsonfilename]
- * @property {Boolean|null} [combinejs=true]
- * @property {Boolean|null} [dev=false]
+ * @property {string|null} [destination]
+ * @property {boolean|null} [index=true]
+ * @property {boolean|null} [extract=true]
+ * @property {string|null} [jsonfilename]
+ * @property {boolean|null} [combinejs=true]
+ * @property {boolean|null} [dev=false]
  * @property {("auto"|"all"|"none")} [assets="auto"]
- * @property {Boolean|null} [flat=false]
- * @property {Boolean|null} [minify=true]
- * @property {Boolean|null} [sourcemaps=false]
- * @property {Boolean|null} [minifyglsl=false]
+ * @property {boolean|null} [flat=false]
+ * @property {boolean|null} [minify=true]
+ * @property {boolean|null} [sourcemaps=false]
+ * @property {boolean|null} [minifyglsl=false]
  */
+
+/**
+ * @typedef {import("./module.js").ModuleOptions<ExportOptionsDaa>} ExportModuleOptions
+ */
+
+/**
+ * @typedef {object} ExportRunResultData
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleRunResult<ExportRunResultData>} ExportModuleRunResult
+ */
+
 export class CablesExport extends CablesModule
 {
     static DEFAULT_DESTINATION = "patch";
@@ -46,7 +58,7 @@ export class CablesExport extends CablesModule
         super(runningAsCli);
 
         /**
-         * @type Array<CliOptionDefinition>
+         * @type Array<import("./module.js").CliOptionDefinition>
          * @private
          */
         this._cliOptions = [
@@ -146,8 +158,8 @@ export class CablesExport extends CablesModule
 
     /**
      *
-     * @param {ModuleOptions<ExportModuleOptions>} [options]
-     * @return Promise<ModuleRunResult>
+     * @param {ExportModuleOptions} [options]
+     * @returns {Promise<ModuleRunResult>}
      */
     async run(options = {})
     {
@@ -245,7 +257,7 @@ export class CablesExport extends CablesModule
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -254,7 +266,7 @@ export class CablesExport extends CablesModule
 
     /**
      *
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {

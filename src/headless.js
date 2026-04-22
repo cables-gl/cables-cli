@@ -2,9 +2,21 @@ import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
 
 /**
- * @typedef {ModuleOptions<HeadlessModuleOptions>} HeadlessModuleOptions
+ * @typedef {object} HeadlessOptionsData
  *
- * @property {String} file
+ * @property {string} file
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleOptions<HeadlessOptionsData>} HeadlessModuleOptions
+ */
+
+/**
+ * @typedef {object} HeadlessRunResultData
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleRunResult<HeadlessRunResultData>} HeadlessModuleRunResult
  */
 
 export class CablesHeadless extends CablesModule
@@ -16,7 +28,7 @@ export class CablesHeadless extends CablesModule
     {
         super(runningAsCli);
         /**
-         * @type Array<CliOptionDefinition>
+         * @type Array<import("./module.js").CliOptionDefinition>
          * @private
          */
         this._cliOptions = [
@@ -32,7 +44,7 @@ export class CablesHeadless extends CablesModule
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -41,7 +53,7 @@ export class CablesHeadless extends CablesModule
 
     /**
      *
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {
@@ -50,8 +62,8 @@ export class CablesHeadless extends CablesModule
 
     /**
      *
-     * @param {ModuleOptions<HeadlessModuleOptions>} [options]
-     * @return {Promise<ModuleRunResult>}
+     * @param {HeadlessModuleOptions} [options]
+     * @returns {Promise<ModuleRunResult>}
      */
     async run(options = {})
     {

@@ -5,21 +5,29 @@ import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { UsageError } from "./usage_error.js";
 
+
 /**
- * @typedef {ModuleOptions<UploadModuleOptions>} UploadModuleOptions
- *
- * @property {String} patch
- * @property {String|Array} file
- * @property {Boolean} newonly
+ * @typedef {object} UploadOptionsData
+ * @property {string} patch
+ * @property {string|string[]} file
+ * @property {boolean} newonly
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleOptions<UploadOptionsData>} UploadModuleOptions
  */
 
 
 /**
- * @typedef {ModuleRunResult<UploadModuleRunResult>} UploadModuleRunResult
- * @property {Boolean} success
- * @property {LogEntry} [error] last error with full information
- * @property {Array<LogEntry>} log array of lines logged during run
- * @property {Array<String>} skipped array of filenames skipped during upload
+ * @typedef {object} UploadRunResultData
+ * @property {boolean} success
+ * @property {import("./logger").LogEntry} [error]
+ * @property {import("./logger").LogEntry[]} log
+ * @property {string[]} skipped
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleRunResult<UploadRunResultData>} UploadModuleRunResult
  */
 
 export class CablesUpload extends CablesModule
@@ -34,7 +42,7 @@ export class CablesUpload extends CablesModule
         super(runningAsCli);
 
         /**
-         * @type Array<CliOptionDefinition>
+         * @type Array<import("./module.js").CliOptionDefinition>
          * @private
          */
         this._cliOptions = [
@@ -64,7 +72,7 @@ export class CablesUpload extends CablesModule
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -73,7 +81,7 @@ export class CablesUpload extends CablesModule
 
     /**
      *
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {
@@ -81,8 +89,8 @@ export class CablesUpload extends CablesModule
     }
 
     /**
-     * @param {ModuleOptions<UploadModuleOptions>} [options]
-     * @return Promise<UploadModuleRunResult>
+     * @param {UploadModuleOptions} [options]
+     * @returns {Promise<UploadModuleRunResult>}
      */
     async run(options = {})
     {
@@ -210,9 +218,9 @@ export class CablesUpload extends CablesModule
 
     /**
      *
-     * @param {Boolean} success
-     * @param {Array<LogEntry>} logEntries
-     * @return UploadModuleRunResult
+     * @param {boolean} success
+     * @param {Array<import("./logger").LogEntry>} logEntries
+     * @returns {UploadModuleRunResult}
      */
     getResult(success = true, logEntries = [], skippedFiles = []) {
         const result = super.getResult(success, logEntries);

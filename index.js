@@ -12,10 +12,10 @@ import { UsageError } from "./src/usage_error.js";
 /**
  * @typedef CommandDefinition
  *
- * @property {String} name
- * @property {String} description
+ * @property {string} name
+ * @property {string} description
  * @property {CablesModule} class
- * @property {Boolean} [visible]
+ * @property {boolean} [visible]
  */
 
 const runningAsCli = (() =>
@@ -27,7 +27,7 @@ const runningAsCli = (() =>
     return thisUrl.href === argv1Url.href;                 // true only when invoked via that bin/script
 })();
 
-class Cables extends CablesModule
+export class Cables extends CablesModule
 {
 
     static COMMAND_NAME_EXPORT = "export";
@@ -37,7 +37,7 @@ class Cables extends CablesModule
 
     /**
      *
-     * @type Array<CommandDefinition>
+     * @type {Array<CommandDefinition>}
      */
     static commands = [
         {
@@ -65,8 +65,8 @@ class Cables extends CablesModule
 
     /**
      *
-     * @param {Boolean} [visibleOnly=false]
-     * @return {Array<CommandDefinition>}
+     * @param {boolean} [visibleOnly=false]
+     * @returns {Array<CommandDefinition>}
      */
     static getCommands(visibleOnly = false)
     {
@@ -93,7 +93,7 @@ class Cables extends CablesModule
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -102,7 +102,7 @@ class Cables extends CablesModule
 
     /**
      *
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {
@@ -112,8 +112,8 @@ class Cables extends CablesModule
     /**
      * run raw command, use: export, upload, headless methods instead. otherwise define `command` in options
      *
-     * @param {ModuleOptions} [options]
-     * @return {Promise<ModuleRunResult>}
+     * @param {import("./src/module.js").ModuleOptions} [options]
+     * @returns {Promise<import("./src/module.js").ModuleRunResult>}
      */
     async run(options = {})
     {
@@ -130,8 +130,8 @@ class Cables extends CablesModule
     /**
      * export cables patch
      *
-     * @param {ExportModuleOptions} [options]
-     * @return {Promise<ModuleRunResult>}
+     * @param {import("./src/export.js").ExportModuleOptions} [options]
+     * @returns {Promise<import("./src/export.js").ExportModuleRunResult>}
      */
     async export(options = {})
     {
@@ -141,6 +141,8 @@ class Cables extends CablesModule
 
     /** import cables patch
      *
+     * @param {import("./src/import.js").ImportModuleOptions} [options]
+     * @returns {Promise<import("./src/import.js").ImportModuleRunResult>}
      */
     async import(options = {})
     {
@@ -151,21 +153,21 @@ class Cables extends CablesModule
     /**
      * upload assets to cables patch
      *
-     * @param {UploadModuleOptions} [options]
-     * @return {Promise<UploadModuleRunResult>}
+     * @param {import("./src/upload.js").UploadModuleOptions} [options]
+     * @returns {Promise<UploadModuleRunResult>}
      */
     async upload(options = {})
     {
         options.command = Cables.COMMAND_NAME_UPLOAD;
-        return this.run(options);
+        return /** @type {Promise<UploadModuleRunResult>} */ (this.run(options));
     }
 
     /**
      *
      * run exported cables patch headless
      *
-     * @param {HeadlessModuleOptions} [options]
-     * @return {Promise<ModuleRunResult>}
+     * @param {import("./src/headless.js").HeadlessModuleOptions} [options]
+     * @returns {Promise<import("./src/headless.js").HeadlessModuleRunResult>}
      */
     async headless(options = {})
     {
@@ -188,5 +190,3 @@ if (runningAsCli)
             if (!help) cli.log.error(e.toString());
         });
 }
-
-export { Cables };

@@ -6,23 +6,28 @@ import { HttpError } from "./http_error.js";
 import process from "node:process";
 import { ApiError } from "./api_error.js";
 
+
 /**
- * @typedef {ModuleOptions<ExportModuleOptions>} ExportModuleOptions
+ * @typedef {object} ImportOptionsData
  *
- * @property {String} patch
- * @property {("html"|"patch"|"code")} [type="html"]
- * @property {String|null} [destination]
- * @property {Boolean|null} [index=true]
- * @property {Boolean|null} [extract=true]
- * @property {String|null} [jsonfilename]
- * @property {Boolean|null} [combinejs=true]
- * @property {Boolean|null} [dev=false]
- * @property {("auto"|"all"|"none")} [assets="auto"]
- * @property {Boolean|null} [flat=false]
- * @property {Boolean|null} [minify=true]
- * @property {Boolean|null} [sourcemaps=false]
- * @property {Boolean|null} [minifyglsl=false]
+ * @property {string} patch
+ * @property {boolean|null} [dev=false]
+ * @property {boolean|null} [convert=false]
+ * @property {string} dir
  */
+
+/**
+ * @typedef {import("./module.js").ModuleOptions<ImportOptionsData>} ImportModuleOptions
+ */
+
+/**
+ * @typedef {object} ImportRunResultData
+ */
+
+/**
+ * @typedef {import("./module.js").ModuleRunResult<ImportRunResultData>} ImportModuleRunResult
+ */
+
 export class CablesImport extends CablesModule
 {
     static MODULE_OPTION_USE_DEV = "dev";
@@ -34,7 +39,7 @@ export class CablesImport extends CablesModule
         super(runningAsCli);
 
         /**
-         * @type Array<CliOptionDefinition>
+         * @type Array<import("./module.js").CliOptionDefinition>
          * @private
          */
         this._cliOptions = [
@@ -57,8 +62,8 @@ export class CablesImport extends CablesModule
     }
     /**
      *
-     * @param {ModuleOptions<ExportModuleOptions>} [options]
-     * @return Promise<ModuleRunResult>
+     * @param {ExportModuleOptions} [options]
+     * @returns {Promise<ImportModuleRunResult>}
      */
     async run(options = {})
     {
@@ -84,7 +89,7 @@ export class CablesImport extends CablesModule
 
     /**
      *
-     * @return {String}
+     * @returns {string}
      */
     getCommandName()
     {
@@ -93,7 +98,7 @@ export class CablesImport extends CablesModule
 
     /**
      *
-     * @return {Boolean}
+     * @returns {boolean}
      */
     requireApiKey()
     {
