@@ -6,6 +6,11 @@ import extract from "extract-zip";
 import { UsageError } from "./usage_error.js";
 import { HttpError } from "./http_error.js";
 
+/** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
+/** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
+/** @typedef {ModuleOptions & ExportOptionsDaa} ExportModuleOptions */
+/** @typedef {ModuleRunResult} ExportModuleRunResult  */
+
 /**
  * @typedef {object} ExportOptionsDaa
  * @property {string} patch
@@ -22,19 +27,6 @@ import { HttpError } from "./http_error.js";
  * @property {boolean|null} [sourcemaps=false]
  * @property {boolean|null} [minifyglsl=false]
  */
-
-/**
- * @typedef {import("./module.js").ModuleOptions<ExportOptionsDaa>} ExportModuleOptions
- */
-
-/**
- * @typedef {object} ExportRunResultData
- */
-
-/**
- * @typedef {import("./module.js").ModuleRunResult<ExportRunResultData>} ExportModuleRunResult
- */
-
 export class CablesExport extends CablesModule
 {
     static DEFAULT_DESTINATION = "patch";

@@ -3,31 +3,20 @@ import path from "path";
 import fs from "fs";
 import archiver from "archiver";
 import { HttpError } from "./http_error.js";
-import process from "node:process";
 import { ApiError } from "./api_error.js";
 
+/** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
+/** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
+/** @typedef {ModuleOptions & ImportOptionsData} ImportModuleOptions */
+/** @typedef {ModuleRunResult} ImportModuleRunResult  */
 
 /**
  * @typedef {object} ImportOptionsData
- *
  * @property {string} patch
  * @property {boolean|null} [dev=false]
  * @property {boolean|null} [convert=false]
  * @property {string} dir
  */
-
-/**
- * @typedef {import("./module.js").ModuleOptions<ImportOptionsData>} ImportModuleOptions
- */
-
-/**
- * @typedef {object} ImportRunResultData
- */
-
-/**
- * @typedef {import("./module.js").ModuleRunResult<ImportRunResultData>} ImportModuleRunResult
- */
-
 export class CablesImport extends CablesModule
 {
     static MODULE_OPTION_USE_DEV = "dev";

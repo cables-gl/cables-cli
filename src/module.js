@@ -11,7 +11,6 @@ import { parse, stringify } from "ini";
 import fs from "fs";
 
 /**
- * @template T
  * @typedef {Object} ModuleOptions
  * @property command
  * @property [apikey]

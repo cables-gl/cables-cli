@@ -5,29 +5,24 @@ import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { UsageError } from "./usage_error.js";
 
+/** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
+/** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
+/** @typedef {ModuleOptions & UploadOptionsData} UploadModuleOptions */
+/** @typedef {ModuleRunResult & UploadOptionsData} UploadModuleRunResult  */
 
 /**
- * @typedef {object} UploadOptionsData
+ * @typedef {Object} UploadOptionsData
  * @property {string} patch
  * @property {string|string[]} file
  * @property {boolean} newonly
  */
 
 /**
- * @typedef {import("./module.js").ModuleOptions<UploadOptionsData>} UploadModuleOptions
- */
-
-
-/**
- * @typedef {object} UploadRunResultData
+ * @typedef {object} UploadOptionsData
  * @property {boolean} success
  * @property {import("./logger").LogEntry} [error]
  * @property {import("./logger").LogEntry[]} log
  * @property {string[]} skipped
- */
-
-/**
- * @typedef {import("./module.js").ModuleRunResult<UploadRunResultData>} UploadModuleRunResult
  */
 
 export class CablesUpload extends CablesModule

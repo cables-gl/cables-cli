@@ -1,22 +1,15 @@
 import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
 
+
+/** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
+/** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
+/** @typedef {ModuleOptions & HeadlessOptionsData} HeadlessModuleOptions */
+/** @typedef {ModuleRunResult} HeadlessModuleRunResult  */
+
 /**
  * @typedef {object} HeadlessOptionsData
- *
  * @property {string} file
- */
-
-/**
- * @typedef {import("./module.js").ModuleOptions<HeadlessOptionsData>} HeadlessModuleOptions
- */
-
-/**
- * @typedef {object} HeadlessRunResultData
- */
-
-/**
- * @typedef {import("./module.js").ModuleRunResult<HeadlessRunResultData>} HeadlessModuleRunResult
  */
 
 export class CablesHeadless extends CablesModule

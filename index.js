@@ -154,12 +154,12 @@ export class Cables extends CablesModule
      * upload assets to cables patch
      *
      * @param {import("./src/upload.js").UploadModuleOptions} [options]
-     * @returns {Promise<UploadModuleRunResult>}
+     * @returns {Promise<import("./src/upload.js").UploadModuleRunResult>}
      */
     async upload(options = {})
     {
         options.command = Cables.COMMAND_NAME_UPLOAD;
-        return /** @type {Promise<UploadModuleRunResult>} */ (this.run(options));
+        return this.run(options);
     }
 
     /**
