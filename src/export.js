@@ -44,6 +44,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_MINIFY = "minify";
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
+    static MODULE_OPTION_ALL_OPS = "allops";
 
     constructor(runningAsCli = false)
     {
@@ -145,6 +146,10 @@ export class CablesExport extends CablesModule
                 "description": "Minifies shader-code in .frag and .att attachments",
                 "type": Boolean,
             },
+            {
+                "name": CablesExport.MODULE_OPTION_ALL_OPS,
+                "description": "When exporting with type `patch`, also include core and extension ops"
+            }
         ];
     }
 
@@ -160,6 +165,7 @@ export class CablesExport extends CablesModule
             await super.run(options);
 
             const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
+
             switch (exportType)
             {
             case "code":
@@ -267,8 +273,9 @@ export class CablesExport extends CablesModule
 
     _getExportUrl(patchId)
     {
+        const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
         const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
-        url.searchParams.set("type", this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE));
+        url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
         if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) url.searchParams.set("dev", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === "false") url.searchParams.set("removeIndexHtml", "true");
@@ -284,6 +291,8 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
+        if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
+
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
         {
             url.searchParams.set("assets", this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT));

@@ -188,9 +188,12 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         options = this._convertLibraryOptions(options);
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
-        moduleOptions = { ...options, ...moduleOptions };
+
+        moduleOptions = { ...moduleOptions, ...options };
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
+
+
 
         if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
         if (moduleOptions[CablesModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesModule.CABLES_DEV_URL;
