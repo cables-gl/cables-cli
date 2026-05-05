@@ -5,6 +5,7 @@ import process from "process";
 import extract from "extract-zip";
 import { UsageError } from "./usage_error.js";
 import { HttpError } from "./http_error.js";
+import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -247,7 +248,8 @@ export class CablesExport extends CablesModule
             return this.getResult();
         } catch (e)
         {
-            this.log.error(e.message, e.cause ? e.cause : "");
+            const cause = e.cause?.message || e.cause;
+            this.log.error(e.message, cause);
             return this.getResult(false);
         }
 
@@ -259,7 +261,7 @@ export class CablesExport extends CablesModule
      */
     getCommandName()
     {
-        return "export";
+        return Cables.COMMAND_NAME_EXPORT;
     }
 
     /**

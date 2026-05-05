@@ -8,6 +8,7 @@ import { CablesUpload } from "./src/upload.js";
 import { CablesHeadless } from "./src/headless.js";
 import { CablesModule } from "./src/module.js";
 import { UsageError } from "./src/usage_error.js";
+import { CablesBuild } from "./src/build.js";
 
 /**
  * @typedef CommandDefinition
@@ -34,6 +35,7 @@ export class Cables extends CablesModule
     static COMMAND_NAME_IMPORT = "import";
     static COMMAND_NAME_UPLOAD = "upload";
     static COMMAND_NAME_HEADLESS = "headless";
+    static COMMAND_NAME_BUILD = "build";
 
     /**
      *
@@ -59,6 +61,12 @@ export class Cables extends CablesModule
             "name": Cables.COMMAND_NAME_HEADLESS,
             "description": "Run an exported patch on the command line",
             "class": CablesHeadless,
+            "visible": false,
+        },
+        {
+            "name": Cables.COMMAND_NAME_BUILD,
+            "description": "Build exported patch using webpack",
+            "class": CablesBuild,
             "visible": false,
         },
     ];
@@ -172,6 +180,19 @@ export class Cables extends CablesModule
     async headless(options = {})
     {
         options.command = Cables.COMMAND_NAME_HEADLESS;
+        return this.run(options);
+    }
+
+    /**
+     *
+     * build exported cables patch using webpack
+     *
+     * @param {import("./src/build.js").BuildModuleOptions} [options]
+     * @returns {Promise<import("./src/headless.js").BuildModuleRunResult>}
+     */
+    async build(options = {})
+    {
+        options.command = Cables.COMMAND_NAME_BUILD;
         return this.run(options);
     }
 }

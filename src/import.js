@@ -4,6 +4,7 @@ import fs from "fs";
 import archiver from "archiver";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
+import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -70,7 +71,8 @@ export class CablesImport extends CablesModule
 
         } catch (e)
         {
-            this.log.error(e.message, e.cause ? e.cause : "");
+            const cause = e.cause?.message || e.cause;
+            this.log.error(e.message, cause);
             return this.getResult(false);
         }
 
@@ -82,7 +84,7 @@ export class CablesImport extends CablesModule
      */
     getCommandName()
     {
-        return "import";
+        return Cables.COMMAND_NAME_IMPORT;
     }
 
     /**

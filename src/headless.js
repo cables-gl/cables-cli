@@ -1,5 +1,6 @@
 import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
+import { Cables } from "../index.js";
 
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
@@ -41,7 +42,7 @@ export class CablesHeadless extends CablesModule
      */
     getCommandName()
     {
-        return "headless";
+        return Cables.COMMAND_NAME_HEADLESS;
     }
 
     /**
@@ -70,7 +71,8 @@ export class CablesHeadless extends CablesModule
             }
         } catch (e)
         {
-            this.log.error(e.message, e.cause ? e.cause : "");
+            const cause = e.cause?.message || e.cause;
+            this.log.error(e.message, cause);
             return this.getResult(false);
         }
 
