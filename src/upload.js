@@ -23,6 +23,7 @@ import { UsageError } from "./usage_error.js";
  * @property {import("./logger").LogEntry} [error]
  * @property {import("./logger").LogEntry[]} log
  * @property {string[]} skipped
+ * @property {string[]} uploaded
  */
 
 export class CablesUpload extends CablesModule
@@ -107,11 +108,13 @@ export class CablesUpload extends CablesModule
                     "headers": { "apikey": this.getApiKey() },
                 };
                 let md5response = {
-                    "ok": false
-                }
-                try {
+                    "ok": false,
+                };
+                try
+                {
                     md5response = await fetch(md5Url, md5Options);
-                }catch (e) {
+                } catch (e)
+                {
                     // error is handled below in else case
                 }
                 if (md5response.ok && md5response.status === 200)
@@ -160,7 +163,8 @@ export class CablesUpload extends CablesModule
                 throw new UsageError("No files to upload! Given file(s) were \"" + givenFiles.join(",") + "\"");
             }
 
-            if(filePaths.length > 0) {
+            if (filePaths.length > 0)
+            {
                 const form = new FormData();
                 let pos = 0;
                 for (const filePath of filePaths)
@@ -198,9 +202,11 @@ export class CablesUpload extends CablesModule
                     const msg = this.getHttpResponseErrorMessage(json, response.status);
                     throw new HttpError(msg, response);
                 }
-                return this.getResult(true, [], skippedFiles);
-            }else{
-                return this.getResult(true, [], skippedFiles);
+                return this.getResult(true, [], skippedFiles, uploadFiles);
+            }
+            else
+            {
+                return this.getResult(true, [], skippedFiles, uploadFiles);
             }
 
         } catch (e)
@@ -217,9 +223,11 @@ export class CablesUpload extends CablesModule
      * @param {Array<import("./logger").LogEntry>} logEntries
      * @returns {UploadModuleRunResult}
      */
-    getResult(success = true, logEntries = [], skippedFiles = []) {
+    getResult(success = true, logEntries = [], skippedFiles = [], uploadedFiles = [])
+    {
         const result = super.getResult(success, logEntries);
-        if(skippedFiles && skippedFiles.length > 0) result.skipped = skippedFiles;
+        if (skippedFiles && skippedFiles.length > 0) result.skipped = skippedFiles;
+        if (uploadedFiles && uploadedFiles.length > 0) result.uploaded = uploadedFiles;
         return result;
     }
 
