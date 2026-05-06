@@ -149,7 +149,8 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
-                "description": "When exporting with type `patch`, also include core and extension ops"
+                "description": "When exporting with type `patch`, also include core and extension ops",
+                "type": Boolean
             }
         ];
     }
@@ -293,6 +294,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
+        console.log("options", this.getModuleOptions());
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
