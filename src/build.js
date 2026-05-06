@@ -5,6 +5,7 @@ import jsonfile from "jsonfile";
 import webpack from "webpack";
 import path from "path";
 import process from "process";
+import fs from "fs";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -24,6 +25,8 @@ export class CablesBuild extends CablesModule
 
     static MODULE_OPTION_PATCH_FILE = "file";
     static MODULE_OPTION_DESTINATION = "destination";
+    static MODULE_OPTION_CLEAN = "clean";
+    static MODULE_OPTION_COMBINE_JS = "combinejs";
 
     constructor(runningAsCli = false)
     {
@@ -46,6 +49,19 @@ export class CablesBuild extends CablesModule
                 "description": "Folder to build the patch to, can either be absolute or relative",
                 "type": String,
                 "typeLabel": "{underline dir}",
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_CLEAN,
+                "description": "Remove destination folder before building",
+                "type": Boolean,
+                "defaultValue": false,
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_COMBINE_JS,
+                "alias": "c",
+                "description": "Combine javascript and json into a single patch.js",
+                "type": String,
+                "defaultValue": "true",
             },
         ];
     }
@@ -99,16 +115,30 @@ export class CablesBuild extends CablesModule
                 finalDir = path.join(process.cwd(), CablesBuild.DEFAULT_DESTINATION);
             }
 
-            const isLiveBuild = true;
-            const buildInfo = {};
-            const minify = isLiveBuild;
-            const analyze = false;
-            const sourceMap = isLiveBuild;
-            await this._runWebpack(patchJson, sourceDir, finalDir, isLiveBuild, buildInfo, minify, analyze, sourceMap);
+            let clean = this.getModuleOption(CablesBuild.MODULE_OPTION_CLEAN);
+            if (clean)
+            {
+                this.log.info("removing destination directory", finalDir);
+                fs.rmSync(finalDir, {
+                    "recursive": true,
+                    "force": true,
+                });
+            }
+            else if (!fs.existsSync(finalDir))
+            {
+                clean = true;
+            }
+
+            const isLiveBuild = false; // FIXME
+            const minify = isLiveBuild; // FIXME
+            const sourceMap = isLiveBuild; // FIXME
+            const flat = false; // FIXME
+            const combineJs = this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true";
+            const minifyGlsl = false; // FIXME
+            await this._runWebpack(patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean);
             return this.getResult(true);
         } catch (e)
         {
-            console.log("ERRRRRRR", e);
             const cause = e.cause?.message || e.cause;
             this.log.error(e.message, cause);
             return this.getResult(false);
@@ -116,15 +146,22 @@ export class CablesBuild extends CablesModule
 
     }
 
-    _runWebpack(patchJson, sourceDir, finalDir) {
-        return new Promise((resolve, reject) => {
-            webpack(webpackConfig(patchJson, sourceDir, finalDir), (err, stats) => {
-                if(err) {
-                    reject(err);
-                }else{
-                    resolve(stats);
-                }
-            })
-        })
+    _runWebpack(patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean)
+    {
+        return new Promise((resolve, reject) =>
+        {
+            webpack(webpackConfig(this, patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean),
+                (err, stats) =>
+                {
+                    if (err)
+                    {
+                        reject(err);
+                    }
+                    else
+                    {
+                        resolve(stats);
+                    }
+                });
+        });
     }
 }

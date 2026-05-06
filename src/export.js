@@ -46,6 +46,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
+    static MODULE_OPTION_CLEAN = "clean";
 
     constructor(runningAsCli = false)
     {
@@ -151,7 +152,13 @@ export class CablesExport extends CablesModule
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
                 "description": "When exporting with type `patch`, also include core and extension ops",
                 "type": Boolean
-            }
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_CLEAN,
+                "description": "Remove destination folder before building",
+                "type": Boolean,
+                "defaultValue": false,
+            },
         ];
     }
 
@@ -217,6 +224,15 @@ export class CablesExport extends CablesModule
                     else
                     {
                         finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
+                    }
+
+                    if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+                    {
+                        this.log.info("removing destination directory", finalDir);
+                        fs.rmSync(finalDir, {
+                            "recursive": true,
+                            "force": true,
+                        });
                     }
 
                     if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
@@ -294,7 +310,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
-        console.log("options", this.getModuleOptions());
+
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
