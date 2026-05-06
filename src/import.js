@@ -44,9 +44,7 @@ export class CablesImport extends CablesModule
             {
                 "name": CablesImport.MODULE_OPTION_CONVERT_OPS,
                 "description": "Import team- and user-ops as new ops",
-                "type": String,
-                "typeLabel": "<{underline html}|patch|code>",
-                "defaultValue": false,
+                "type": String
             }
         ];
     }
@@ -65,7 +63,7 @@ export class CablesImport extends CablesModule
             await this._createPatchZip(patchDir, zipFile);
             const result = await this._uploadZip(zipFile);
             if(result && result.data?.projectId) {
-                this.log.info("Success, imported projecturl:", this._baseUrl + "/p/" + result.data.projectId)
+                this.log.info("Success, imported projecturl:", this._baseUrl + "p/" + result.data.projectId)
             }
             return this.getResult();
 
