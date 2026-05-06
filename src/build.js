@@ -27,6 +27,7 @@ export class CablesBuild extends CablesModule
     static MODULE_OPTION_DESTINATION = "destination";
     static MODULE_OPTION_CLEAN = "clean";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
+    static MODULE_OPTION_MINIFY = "minify";
 
     constructor(runningAsCli = false)
     {
@@ -60,6 +61,13 @@ export class CablesBuild extends CablesModule
                 "name": CablesBuild.MODULE_OPTION_COMBINE_JS,
                 "alias": "c",
                 "description": "Combine javascript and json into a single patch.js",
+                "type": String,
+                "defaultValue": "true",
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_MINIFY,
+                "alias": "m",
+                "description": "Minify code",
                 "type": String,
                 "defaultValue": "true",
             },
@@ -130,7 +138,7 @@ export class CablesBuild extends CablesModule
             }
 
             const isLiveBuild = false; // FIXME
-            const minify = isLiveBuild; // FIXME
+            const minify = this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true";
             const sourceMap = isLiveBuild; // FIXME
             const flat = false; // FIXME
             const combineJs = this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true";
