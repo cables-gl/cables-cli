@@ -18,6 +18,17 @@ import fs from "fs";
  * @property {string} file
  */
 
+/**
+ * @typedef CablesBuildOptions
+ * @property {string} buildMode
+ * @property {boolean} combinejs
+ * @property {boolean} flat
+ * @property {boolean} minify
+ * @property {boolean} sourcemaps
+ * @property {boolean} minifyglsl
+ * @property {boolean} clean
+ */
+
 export class CablesBuild extends CablesModule
 {
 
@@ -28,6 +39,8 @@ export class CablesBuild extends CablesModule
     static MODULE_OPTION_CLEAN = "clean";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
     static MODULE_OPTION_MINIFY = "minify";
+    static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
+    static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
 
     constructor(runningAsCli = false)
     {
@@ -70,6 +83,18 @@ export class CablesBuild extends CablesModule
                 "description": "Minify code",
                 "type": String,
                 "defaultValue": "true",
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_SOURCEMAPS,
+                "alias": "M",
+                "description": "If code is minified, add sourcemaps to the build",
+                "type": Boolean,
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_MINIFY_GLSL,
+                "alias": "g",
+                "description": "Minifies shader-code in .frag and .att attachments",
+                "type": Boolean,
             },
         ];
     }
@@ -137,13 +162,17 @@ export class CablesBuild extends CablesModule
                 clean = true;
             }
 
-            const isLiveBuild = false; // FIXME
-            const minify = this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true";
-            const sourceMap = isLiveBuild; // FIXME
-            const flat = false; // FIXME
-            const combineJs = this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true";
-            const minifyGlsl = false; // FIXME
-            await this._runWebpack(patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean);
+            /** @type {CablesBuildOptions} */
+            const buildOptions = {
+                buildMode: "development", // FIXME
+                minify: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true",
+                sourcemaps: this.getModuleOption(CablesBuild.MODULE_OPTION_SOURCEMAPS) === "true",
+                flat: false, // FIXME
+                combinejs: this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true",
+                minifyglsl: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY_GLSL) === "true",
+                clean: clean
+            }
+            await this._runWebpack(patchJson, sourceDir, finalDir, buildOptions);
             return this.getResult(true);
         } catch (e)
         {
@@ -154,11 +183,18 @@ export class CablesBuild extends CablesModule
 
     }
 
-    _runWebpack(patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean)
+    /**
+     * @param {any} patchJson
+     * @param {string} sourceDir
+     * @param {string} targetDir
+     * @param {CablesBuildOptions} options
+     * @returns {Promise}
+     */
+    _runWebpack(patchJson, sourceDir, targetDir, options)
     {
         return new Promise((resolve, reject) =>
         {
-            webpack(webpackConfig(this, patchJson, sourceDir, finalDir, isLiveBuild, combineJs, flat, minify, sourceMap, minifyGlsl, clean),
+            webpack(webpackConfig(this, patchJson, sourceDir, targetDir, options),
                 (err, stats) =>
                 {
                     if (err)

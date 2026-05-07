@@ -45,7 +45,7 @@
         "glob": "13.0.6",
         "webpack": "5.106.2",
         "webpack-cli": "7.0.2",
-        "terser-webpack-plugin": "5.5.0",
+        "terser": "5.47.0",
         "glsl-tokenizer": "2.1.5",
         "jsonfile": "6.2.1",
         "html-webpack-plugin": "5.6.7",
