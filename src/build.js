@@ -19,7 +19,7 @@ import fs from "fs";
  */
 
 /**
- * @typedef CablesBuildOptions
+ * @typedef {object} CablesBuildOptions
  * @property {string} buildMode
  * @property {boolean} combinejs
  * @property {boolean} flat
@@ -169,7 +169,7 @@ export class CablesBuild extends CablesModule
                 sourcemaps: this.getModuleOption(CablesBuild.MODULE_OPTION_SOURCEMAPS) === "true",
                 flat: false, // FIXME
                 combinejs: this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true",
-                minifyglsl: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY_GLSL) === "true",
+                minifyglsl: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY_GLSL),
                 clean: clean
             }
             await this._runWebpack(patchJson, sourceDir, finalDir, buildOptions);
