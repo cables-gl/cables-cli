@@ -179,11 +179,11 @@ export class CablesUpload extends CablesModule
 
                 if (filePaths.length > 1)
                 {
-                    this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
+                    this.log.info("Uploading", filePaths.length, " files to", url.href, "...");
                 }
                 else
                 {
-                    this.log.info("Uploading", filePaths[0].length, "to", url.href, "...");
+                    this.log.info("Uploading", filePaths[0], "to", url.href, "...");
 
                 }
                 const reqOptions = {
