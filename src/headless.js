@@ -1,7 +1,6 @@
 import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
 
-
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
 /** @typedef {ModuleOptions & HeadlessOptionsData} HeadlessModuleOptions */
@@ -20,6 +19,7 @@ export class CablesHeadless extends CablesModule
     constructor(runningAsCli = false)
     {
         super(runningAsCli);
+
         /**
          * @type Array<import("./module.js").CliOptionDefinition>
          * @private
@@ -60,7 +60,8 @@ export class CablesHeadless extends CablesModule
      */
     async run(options = {})
     {
-        try {
+        try
+        {
             await super.run(options);
             const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
             if (patchFile)
@@ -68,13 +69,13 @@ export class CablesHeadless extends CablesModule
                 const runner = new CablesHeadlessRunner(patchFile);
                 return runner.run();
             }
-        } catch (e)
+        }
+        catch (e)
         {
             this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
         }
 
     }
-
 
 }

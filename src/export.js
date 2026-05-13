@@ -1,8 +1,8 @@
-import { CablesModule } from "./module.js";
 import path from "path";
 import fs from "fs";
 import process from "process";
 import extract from "extract-zip";
+import { CablesModule } from "./module.js";
 import { UsageError } from "./usage_error.js";
 import { HttpError } from "./http_error.js";
 
@@ -189,7 +189,7 @@ export class CablesExport extends CablesModule
                     const json = await response.json();
                     if (json.log && Array.isArray(json.log))
                     {
-                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error";});
+                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
                         relevantEntries.forEach((logEntry) =>
                         {
                             this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
@@ -220,7 +220,7 @@ export class CablesExport extends CablesModule
                     if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
                     {
                         this.log.info("extracting to " + finalDir);
-                        await extract(tempFile, { dir: finalDir });
+                        await extract(tempFile, { "dir": finalDir });
                         fs.unlinkSync(tempFile);
                     }
                     else
@@ -236,7 +236,8 @@ export class CablesExport extends CablesModule
                     {
                         message = await response.json();
                         message = message.msg;
-                    } catch (e)
+                    }
+                    catch (e)
                     {
                         message = "failed to parse error response json: " + e;
                     }
@@ -245,7 +246,8 @@ export class CablesExport extends CablesModule
                 break;
             }
             return this.getResult();
-        } catch (e)
+        }
+        catch (e)
         {
             this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);

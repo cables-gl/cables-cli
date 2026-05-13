@@ -1,7 +1,7 @@
-import { CablesModule } from "./module.js";
 import path from "path";
 import fs from "fs";
 import archiver from "archiver";
+import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
 
@@ -49,6 +49,7 @@ export class CablesImport extends CablesModule
             }
         ];
     }
+
     /**
      *
      * @param {ExportModuleOptions} [options]
@@ -59,16 +60,18 @@ export class CablesImport extends CablesModule
         try
         {
             await super.run(options);
-            const zipFile = './patch.zip';
+            const zipFile = "./patch.zip";
             const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
             await this._createPatchZip(patchDir, zipFile);
             const result = await this._uploadZip(zipFile);
-            if(result && result.data?.projectId) {
-                this.log.info("Success, imported projecturl:", this._baseUrl + "/p/" + result.data.projectId)
+            if (result && result.data?.projectId)
+            {
+                this.log.info("Success, imported projecturl:", this._baseUrl + "/p/" + result.data.projectId);
             }
             return this.getResult();
 
-        } catch (e)
+        }
+        catch (e)
         {
             this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
@@ -101,36 +104,45 @@ export class CablesImport extends CablesModule
         return url;
     }
 
-    async _createPatchZip(sourceDir, targetZip) {
-        return new Promise((resolve, reject) => {
+    async _createPatchZip(sourceDir, targetZip)
+    {
+        return new Promise((resolve, reject) =>
+        {
             const output = fs.createWriteStream(targetZip);
-            const archive = archiver('zip', {
-                zlib: { level: 0 } // Sets the compression level.
+            const archive = archiver("zip", {
+                "zlib": { "level": 0 } // Sets the compression level.
             });
 
-            output.on("close", () => {
-                this.log.debug(archive.pointer() + ' total bytes');
-                this.log.debug('archiver has been finalized and the output file descriptor has closed.');
+            output.on("close", () =>
+            {
+                this.log.debug(archive.pointer() + " total bytes");
+                this.log.debug("archiver has been finalized and the output file descriptor has closed.");
                 resolve(this.getResult(true));
             });
 
-            output.on("error", (err) => {
+            output.on("error", (err) =>
+            {
                 this.log.error("Error during creation of zip", targetZip, err);
                 reject(this.getResult(false));
             });
 
             // good practice to catch warnings (ie stat failures and other non-blocking errors)
-            archive.on('warning', (err) => {
-                if (err.code === 'ENOENT') {
+            archive.on("warning", (err) =>
+            {
+                if (err.code === "ENOENT")
+                {
                     this.log.warn(err);
-                } else {
+                }
+                else
+                {
                     this.log.error(err);
                     reject(this.getResult(false));
                 }
             });
 
             // good practice to catch this error explicitly
-            archive.on('error', (err) => {
+            archive.on("error", (err) =>
+            {
                 this.log.error(err);
                 reject(this.getResult(false));
             });
@@ -165,10 +177,12 @@ export class CablesImport extends CablesModule
         if (response.ok && response.status === 200)
         {
             const json = await response.json();
-            if(json.data?.problems && Object.values(json.data.problems).length > 0) {
-                Object.values(json.data.problems).forEach((problem) => {
-                    this.log.error(problem)
-                })
+            if (json.data?.problems && Object.values(json.data.problems).length > 0)
+            {
+                Object.values(json.data.problems).forEach((problem) =>
+                {
+                    this.log.error(problem);
+                });
                 throw new ApiError("Import error", response, Object.values(json.data.problems));
             }
             return json;

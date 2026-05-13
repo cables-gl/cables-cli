@@ -113,19 +113,20 @@ export class CablesUpload extends CablesModule
                 try
                 {
                     md5response = await fetch(md5Url, md5Options);
-                } catch (e)
+                }
+                catch (e)
                 {
                     // error is handled below in else case
                 }
                 if (md5response.ok && md5response.status === 200)
                 {
                     const remoteFiles = await md5response.json();
-                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary;});
+                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary; });
                     givenFiles.forEach((givenFile) =>
                     {
                         const baseName = path.basename(givenFile);
                         const localHash = md5File.sync(givenFile);
-                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName;});
+                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName; });
                         if (remoteFile && remoteFile.hash)
                         {
                             if (localHash !== remoteFile.hash)
@@ -171,6 +172,7 @@ export class CablesUpload extends CablesModule
                 {
                     if (filePath)
                     {
+                        // eslint-disable-next-line no-await-in-loop
                         const file = await fs.openAsBlob(filePath);
                         form.append(String(pos), file, path.basename(filePath));
                         pos++;
@@ -209,7 +211,8 @@ export class CablesUpload extends CablesModule
                 return this.getResult(true, [], skippedFiles, uploadFiles);
             }
 
-        } catch (e)
+        }
+        catch (e)
         {
             this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
@@ -231,9 +234,9 @@ export class CablesUpload extends CablesModule
         return result;
     }
 
-    _getUrl(path, params = {})
+    _getUrl(urlPath, params = {})
     {
-        const url = new URL(path, this._baseUrl);
+        const url = new URL(urlPath, this._baseUrl);
         Object.keys(params)
             .forEach((key) =>
             {
@@ -253,6 +256,4 @@ export class CablesUpload extends CablesModule
         });
         return absoluteLocations;
     }
-
-
 }

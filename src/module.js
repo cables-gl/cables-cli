@@ -1,14 +1,14 @@
 import process from "node:process";
 import commandLineUsage from "command-line-usage";
 import commandLineArgs from "command-line-args";
-import { Cables } from "../index.js";
 import prompt from "prompt";
-import { Logger } from "./logger.js";
-import { UsageError } from "./usage_error.js";
 import * as os from "node:os";
 import path from "path";
 import { parse, stringify } from "ini";
 import fs from "fs";
+import { UsageError } from "./usage_error.js";
+import { Logger } from "./logger.js";
+import { Cables } from "../index.js";
 
 /**
  * @typedef {Object} ModuleOptions
@@ -133,22 +133,23 @@ export class CablesModule
     getUsageInfo()
     {
         const options = this._getModuleOptionDefinitions();
+        // eslint-disable-next-line no-restricted-syntax
         const cablesLogo = `                                     >>>  ___:_ _
        _ _:_______________ _____________ /   |\\\\   _ _______
-          |  _           /\\\\\\\\_           \\\\    |\\\\\\\\.  _)     /\\\\       ______         
-    _____ | (/)        _/\\\\\\\\\\\\(_______    /    |\\\\\\\\| /    __/\\\\\\\\\\\\     /     /\\\\    
-   /   _/\\\\_      _    /_\\\\\\\\\\\\/_\\\\\\\\\\\\\\\\ _/   /     |\\\\\\\\|/     \\\\_\\\\\\\\\\\\/___ /     /\\\\\\\\\\\\ 
+          |  _           /\\\\\\\\_           \\\\    |\\\\\\\\.  _)     /\\\\       ______
+    _____ | (/)        _/\\\\\\\\\\\\(_______    /    |\\\\\\\\| /    __/\\\\\\\\\\\\     /     /\\\\
+   /   _/\\\\_      _    /_\\\\\\\\\\\\/_\\\\\\\\\\\\\\\\ _/   /     |\\\\\\\\|/     \\\\_\\\\\\\\\\\\/___ /     /\\\\\\\\\\\\
   /   /_\\\\\\\\|_     |\\\\     \\\\\\\\(    /\\\\ \\\\   /_    _:\\\\\\\\/__ /\\\\_/       /_\\\\   _/_\\\\\\\\/___
 _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          /   \\\\          /\\\\
 \\\\           _\\\\   \\\\___     _/             \\\\         /         /     \\\\_       /\\\\\\\\\\\\
  \\\\_________(    _|\\\\\\\\\\\\\\\\     \\\\_ ___________/   _    /_________/       /      /\\\\\\\\\\\\/
   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\|_____)\\\\\\\\\\\\        |\\\\\\\\\\\\\\\\\\\\/         (/)  /\\\\\\\\\\\\\\\\\\\\\\\\\\\\/                /_\\\\\\\\/
-   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_______:\\\\\\\\.\\\\/______________/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_________________(\\\\\\\\ 
+   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_______:\\\\\\\\.\\\\/______________/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_________________(\\\\\\\\
  _|.._     \\\\\\\\\\\\\\\\\\\\\\\\\\\\)  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\| \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-(_|||_)               \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\|  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/       \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\( 
+(_|||_)               \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\|  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/       \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(
  ---|-->>`;
 
-        const banner =   {
+        const banner = {
             "content": cablesLogo,
             "raw": true
         };
@@ -159,7 +160,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         const localOptions = options.filter(
             (option) =>
             {
-                return option.name !== CablesModule.MODULE_OPTION_COMMAND && !this._globalCliOptions.find((o) => { return o.name === option.name;});
+                return option.name !== CablesModule.MODULE_OPTION_COMMAND && !this._globalCliOptions.find((o) => { return o.name === option.name; });
             });
         let commandOptions = {};
         if (localOptions.length > 0)
@@ -171,7 +172,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         }
         const globalOptions = {
             "header": "Global Options:",
-            "optionList": this._globalCliOptions.filter((option) => { return option.name !== CablesModule.MODULE_OPTION_COMMAND;}),
+            "optionList": this._globalCliOptions.filter((option) => { return option.name !== CablesModule.MODULE_OPTION_COMMAND; }),
         };
 
         return commandLineUsage([banner, header, this._commandUsage, commandOptions, globalOptions]);
@@ -187,13 +188,11 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     {
         options = this._convertLibraryOptions(options);
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
-        let moduleOptions = commandLineArgs(moduleOptionDefinitions, { stopAtFirstUnknown: true });
+        let moduleOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": true });
 
         moduleOptions = { ...moduleOptions, ...options };
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
-
-
 
         if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
         if (moduleOptions[CablesModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesModule.CABLES_DEV_URL;
@@ -226,7 +225,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 else
                 {
                     await this.assureApiKey(moduleOptions, this._baseUrl);
-                    const requiredOptions = moduleOptionDefinitions.filter((d) => { return d.required;});
+                    const requiredOptions = moduleOptionDefinitions.filter((d) => { return d.required; });
                     requiredOptions.forEach((ro) =>
                     {
                         if (!moduleOptions[ro.name])
@@ -319,7 +318,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     getCommand(name)
     {
         return Cables.getCommands()
-            .find((c) => { return c.name === name;});
+            .find((c) => { return c.name === name; });
     }
 
     /**
@@ -337,7 +336,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
      * @param {URL} url
      * @returns {Promise<void>}
      */
-    async assureApiKey(moduleOptions, url) {
+    async assureApiKey(moduleOptions, url)
+    {
         if (!this.requireApiKey()) return;
         if (!moduleOptions[CablesModule.MODULE_OPTION_API_KEY])
         {
@@ -355,7 +355,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                             "required": true
                         }
                     }
-                }
+                };
                 const result = await prompt.get(promptSchema);
                 this._saveToLocalConfig(url.hostname, result[CablesModule.MODULE_OPTION_API_KEY]);
                 moduleOptions[CablesModule.MODULE_OPTION_API_KEY] = result[CablesModule.MODULE_OPTION_API_KEY];
@@ -377,7 +377,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             {
                 const errorJson = responseJson;
                 errorText = errorJson.msg || JSON.stringify(errorJson);
-            } catch (e)
+            }
+            catch (e)
             {
                 errorText = responseJson;
                 // use text, see above
@@ -419,7 +420,6 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         return this._cliOptions.concat(this._globalCliOptions);
     }
 
-
     _readLocalConfig()
     {
         let configFromFile = {};
@@ -430,7 +430,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             {
                 configFromFile = parse(rawFile.toString());
             }
-        } catch (e)
+        }
+        catch (e)
         {
             // configfile not found, return empty config
         }
@@ -450,7 +451,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 fs.writeFileSync(this._localConfigFileLocation, iniText);
                 this.log.info(key, "saved in ~/" + CablesModule.CONFIG_FILENAME);
                 this._localConfig = this._readLocalConfig();
-            } catch (e)
+            }
+            catch (e)
             {
                 throw new UsageError("failed to save " + key + " to " + this._localConfigFileLocation);
             }
@@ -464,7 +466,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             .forEach((optionKey) =>
             {
                 const value = options[optionKey];
-                const definition = definitions.find((d) => { return d.name === optionKey;});
+                const definition = definitions.find((d) => { return d.name === optionKey; });
                 if (definition)
                 {
                     if (definition.multiple)

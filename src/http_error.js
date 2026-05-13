@@ -1,10 +1,13 @@
-export class HttpError extends Error {
-    constructor(message, response) {
+export class HttpError extends Error
+{
+    constructor(message, response)
+    {
         super(message);
         this.response = response;
     }
 
-    toString() {
+    toString()
+    {
         let errMessage;
         switch (this.response.status)
         {

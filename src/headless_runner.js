@@ -22,7 +22,7 @@ export class CablesHeadlessRunner
     constructor(patchFile, runningAsCli = true)
     {
         this._cli = runningAsCli;
-        this.log = new Logger({"silent": !this._cli});
+        this.log = new Logger({ "silent": !this._cli });
         this._patchFile = patchFile;
 
         this._dir = path.dirname(patchFile);
@@ -51,7 +51,8 @@ export class CablesHeadlessRunner
         });
         new CABLES.Patch({
             "patch": patchJson.toString(),
-            "onError": (...args) => {
+            "onError": (...args) =>
+            {
                 this.log.error(...args);
             },
             "doRequestAnimation": false,

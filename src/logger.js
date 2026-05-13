@@ -26,6 +26,7 @@ import path from "path";
 /* eslint-disable no-console */
 export class Logger
 {
+
     /**
      *
      * @param {LoggerOptions} options
@@ -68,9 +69,10 @@ export class Logger
      *
      * @param {("debug"|"verbose"|"info"|"warn"|"error")} logLevel
      */
-    setLogLevel(logLevel) {
-        if(!logLevel) return;
-        if(!this._levels.includes(logLevel)) return;
+    setLogLevel(logLevel)
+    {
+        if (!logLevel) return;
+        if (!this._levels.includes(logLevel)) return;
         this._logLevel = logLevel;
         this._logLevelIndex = this._levels.findIndex((level) => { return level === this._logLevel; });
         this.debug("setting loglevel to ", logLevel, this._logLevelIndex);
@@ -182,7 +184,8 @@ export class Logger
      *
      * @returns {Array<LogEntry>}
      */
-    getEntries() {
+    getEntries()
+    {
         return this._entries;
     }
 
@@ -196,22 +199,22 @@ export class Logger
             "context": context,
             "message": args.join(" ")
         });
-        if(this._silent) return;
+        if (this._silent) return;
         switch (level)
         {
         case "uncaught":
         case "error":
-            console.error( ...args);
+            console.error(...args);
             break;
         case "warn":
-            console.warn( ...args);
+            console.warn(...args);
             break;
         case "info":
-            console.info( ...args);
+            console.info(...args);
             break;
         case "verbose":
         case "debug":
-            console.debug( ...args);
+            console.debug(...args);
             break;
         case "startTime":
             console.time(...args);
@@ -220,11 +223,10 @@ export class Logger
             console.timeEnd(...args);
             break;
         default:
-            console.log( ...args);
+            console.log(...args);
             break;
         }
     }
-
 
     /**
      *
