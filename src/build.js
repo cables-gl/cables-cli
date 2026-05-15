@@ -65,13 +65,12 @@ export class CablesBuild extends CablesModule
                 "alias": "d",
                 "description": "Folder to build the patch to, can either be absolute or relative",
                 "type": String,
-                "typeLabel": "{underline dir}",
+                "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
             },
             {
                 "name": CablesBuild.MODULE_OPTION_CLEAN,
                 "description": "Remove destination folder before building",
                 "type": Boolean,
-                "defaultValue": false,
             },
             {
                 "name": CablesBuild.MODULE_OPTION_COMBINE_JS,
@@ -79,6 +78,7 @@ export class CablesBuild extends CablesModule
                 "description": "Combine javascript and json into a single patch.js",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesBuild.MODULE_OPTION_MINIFY,
@@ -86,6 +86,7 @@ export class CablesBuild extends CablesModule
                 "description": "Minify code",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesBuild.MODULE_OPTION_SOURCEMAPS,
@@ -105,6 +106,7 @@ export class CablesBuild extends CablesModule
                 "description": "Will include index.html in the export.",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
         ];
     }

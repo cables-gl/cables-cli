@@ -79,7 +79,7 @@ export class CablesExport extends CablesModule
                 "alias": "d",
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
-                "typeLabel": "{underline dir}",
+                "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
             },
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
@@ -87,6 +87,7 @@ export class CablesExport extends CablesModule
                 "description": "Will include index.html in the export.",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXTRACT_ZIP,
@@ -94,6 +95,7 @@ export class CablesExport extends CablesModule
                 "description": "Extract the downloaded zip file",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesExport.MODULE_OPTION_JSON_FILENAME,
@@ -108,6 +110,7 @@ export class CablesExport extends CablesModule
                 "description": "Combine javascript and json into a single patch.js",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesExport.MODULE_OPTION_USE_DEV,
@@ -135,6 +138,7 @@ export class CablesExport extends CablesModule
                 "description": "Minify code",
                 "type": String,
                 "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
