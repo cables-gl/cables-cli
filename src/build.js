@@ -1,11 +1,11 @@
-import { CablesModule } from "./module.js";
-import { Cables } from "../index.js";
-import webpackConfig from "./webpack/webpack.config.js";
 import jsonfile from "jsonfile";
 import webpack from "webpack";
 import path from "path";
 import process from "process";
 import fs from "fs";
+import webpackConfig from "./webpack/webpack.config.js";
+import { Cables } from "../index.js";
+import { CablesModule } from "./module.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -27,6 +27,7 @@ import fs from "fs";
  * @property {boolean} sourcemaps
  * @property {boolean} minifyglsl
  * @property {boolean} clean
+ * @property {boolean} indexHtml
  */
 
 export class CablesBuild extends CablesModule
@@ -41,10 +42,12 @@ export class CablesBuild extends CablesModule
     static MODULE_OPTION_MINIFY = "minify";
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
+    static MODULE_OPTION_INDEX_HTML = "index";
 
     constructor(runningAsCli = false)
     {
         super(runningAsCli);
+
         /**
          * @type Array<import("./module.js").CliOptionDefinition>
          * @private
@@ -95,6 +98,13 @@ export class CablesBuild extends CablesModule
                 "alias": "g",
                 "description": "Minifies shader-code in .frag and .att attachments",
                 "type": Boolean,
+            },
+            {
+                "name": CablesBuild.MODULE_OPTION_INDEX_HTML,
+                "alias": "i",
+                "description": "Will include index.html in the export.",
+                "type": String,
+                "defaultValue": "true",
             },
         ];
     }
@@ -164,17 +174,19 @@ export class CablesBuild extends CablesModule
 
             /** @type {CablesBuildOptions} */
             const buildOptions = {
-                buildMode: "development", // FIXME
-                minify: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true",
-                sourcemaps: this.getModuleOption(CablesBuild.MODULE_OPTION_SOURCEMAPS) === "true",
-                flat: false, // FIXME
-                combinejs: this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true",
-                minifyglsl: this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY_GLSL),
-                clean: clean
-            }
+                "buildMode": "development", // FIXME
+                "minify": this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true",
+                "sourcemaps": this.getModuleOption(CablesBuild.MODULE_OPTION_SOURCEMAPS) === "true",
+                "flat": false, // FIXME
+                "combinejs": this.getModuleOption(CablesBuild.MODULE_OPTION_COMBINE_JS) === "true",
+                "minifyglsl": this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY_GLSL),
+                "indexHtml": this.getModuleOption(CablesBuild.MODULE_OPTION_INDEX_HTML) === "true",
+                "clean": clean
+            };
             await this._runWebpack(patchJson, sourceDir, finalDir, buildOptions);
             return this.getResult(true);
-        } catch (e)
+        }
+        catch (e)
         {
             const cause = e.cause?.message || e.cause;
             this.log.error(e.message, cause);
