@@ -190,7 +190,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": true });
 
-        moduleOptions = { ...moduleOptions, ...options };
+        moduleOptions = { ...options, ...moduleOptions };
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
 
