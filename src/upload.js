@@ -9,7 +9,7 @@ import { Cables } from "../index.js";
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
 /** @typedef {ModuleOptions & UploadOptionsData} UploadModuleOptions */
-/** @typedef {ModuleRunResult & UploadOptionsData} UploadModuleRunResult  */
+/** @typedef {ModuleRunResult & UploadModuleRunResultData} UploadModuleRunResult  */
 
 /**
  * @typedef {Object} UploadOptionsData
@@ -19,10 +19,7 @@ import { Cables } from "../index.js";
  */
 
 /**
- * @typedef {object} UploadOptionsData
- * @property {boolean} success
- * @property {import("./logger").LogEntry} [error]
- * @property {import("./logger").LogEntry[]} log
+ * @typedef {object} UploadModuleRunResultData
  * @property {string[]} skipped
  * @property {string[]} uploaded
  */
@@ -114,19 +111,20 @@ export class CablesUpload extends CablesModule
                 try
                 {
                     md5response = await fetch(md5Url, md5Options);
-                } catch (e)
+                }
+                catch (e)
                 {
                     // error is handled below in else case
                 }
                 if (md5response.ok && md5response.status === 200)
                 {
                     const remoteFiles = await md5response.json();
-                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary;});
+                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary; });
                     givenFiles.forEach((givenFile) =>
                     {
                         const baseName = path.basename(givenFile);
                         const localHash = md5File.sync(givenFile);
-                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName;});
+                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName; });
                         if (remoteFile && remoteFile.hash)
                         {
                             if (localHash !== remoteFile.hash)
@@ -172,6 +170,7 @@ export class CablesUpload extends CablesModule
                 {
                     if (filePath)
                     {
+                        // eslint-disable-next-line no-await-in-loop
                         const file = await fs.openAsBlob(filePath);
                         form.append(String(pos), file, path.basename(filePath));
                         pos++;
@@ -180,11 +179,11 @@ export class CablesUpload extends CablesModule
 
                 if (filePaths.length > 1)
                 {
-                    this.log.info("Uploading", filePaths.length, " file(s) to", url.href, "...");
+                    this.log.info("Uploading", filePaths.length, " files to", url.href, "...");
                 }
                 else
                 {
-                    this.log.info("Uploading", filePaths[0].length, "to", url.href, "...");
+                    this.log.info("Uploading", filePaths[0], "to", url.href, "...");
 
                 }
                 const reqOptions = {
@@ -210,7 +209,8 @@ export class CablesUpload extends CablesModule
                 return this.getResult(true, [], skippedFiles, uploadFiles);
             }
 
-        } catch (e)
+        }
+        catch (e)
         {
             const cause = e.cause?.message || e.cause;
             this.log.error(e.message, cause);
@@ -233,9 +233,9 @@ export class CablesUpload extends CablesModule
         return result;
     }
 
-    _getUrl(path, params = {})
+    _getUrl(urlPath, params = {})
     {
-        const url = new URL(path, this._baseUrl);
+        const url = new URL(urlPath, this._baseUrl);
         Object.keys(params)
             .forEach((key) =>
             {
@@ -255,6 +255,4 @@ export class CablesUpload extends CablesModule
         });
         return absoluteLocations;
     }
-
-
 }

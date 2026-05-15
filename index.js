@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 import process from "node:process";
 import fs from "fs";
 import { CablesExport } from "./src/export.js";
-import { CablesImport} from "./src/import.js";
+import { CablesImport } from "./src/import.js";
 import { CablesUpload } from "./src/upload.js";
 import { CablesHeadless } from "./src/headless.js";
 import { CablesModule } from "./src/module.js";
@@ -23,9 +23,9 @@ const runningAsCli = (() =>
 {
     if (!process?.argv[1]) return false;
     const thisUrl = new URL(import.meta.url);
-    const argv1Real = fs.realpathSync(process.argv[1]);       // resolve .bin/cables -> .../index.js
+    const argv1Real = fs.realpathSync(process.argv[1]); // resolve .bin/cables -> .../index.js
     const argv1Url = pathToFileURL(argv1Real);
-    return thisUrl.href === argv1Url.href;                 // true only when invoked via that bin/script
+    return thisUrl.href === argv1Url.href; // true only when invoked via that bin/script
 })();
 
 export class Cables extends CablesModule
@@ -83,16 +83,15 @@ export class Cables extends CablesModule
         return commands;
     }
 
-    constructor(runningAsCli = false)
+    constructor(asCli = false)
     {
-        super(runningAsCli);
+        super(asCli);
         let content = "";
-        Cables.getCommands(true)
-            .forEach((command, i) =>
-            {
-                if (i > 0) content += "\n";
-                content += command.name + "\t" + command.description;
-            });
+        Cables.getCommands(true).forEach((command, i) =>
+        {
+            if (i > 0) content += "\n";
+            content += command.name + "\t" + command.description;
+        });
         this._commandUsage = {
             "header": "Commands",
             "content": content,
