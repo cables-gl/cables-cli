@@ -5,6 +5,10 @@ import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
 
+/**
+ * @typedef {import("./module.js").CliOptionDefinition} CliOptionDefinition
+ */
+
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
 /** @typedef {ModuleOptions & ImportOptionsData} ImportModuleOptions */
@@ -28,7 +32,7 @@ export class CablesImport extends CablesModule
         super(runningAsCli);
 
         /**
-         * @type Array<import("./module.js").CliOptionDefinition>
+         * @type Array<CliOptionDefinition>
          * @private
          */
         this._cliOptions = [
@@ -52,7 +56,7 @@ export class CablesImport extends CablesModule
 
     /**
      *
-     * @param {ExportModuleOptions} [options]
+     * @param {ImportModuleOptions} [options]
      * @returns {Promise<ImportModuleRunResult>}
      */
     async run(options = {})
