@@ -212,7 +212,7 @@ export class CablesUpload extends CablesModule
         }
         catch (e)
         {
-            const cause = e.cause?.message || e.cause;
+            const cause = e.cause?.message || e.cause || "";
             this.log.error(e.message, cause);
             return this.getResult(false);
         }
