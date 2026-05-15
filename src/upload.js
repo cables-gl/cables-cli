@@ -8,7 +8,7 @@ import { UsageError } from "./usage_error.js";
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
 /** @typedef {ModuleOptions & UploadOptionsData} UploadModuleOptions */
-/** @typedef {ModuleRunResult & UploadOptionsData} UploadModuleRunResult  */
+/** @typedef {ModuleRunResult & UploadModuleRunResultData} UploadModuleRunResult  */
 
 /**
  * @typedef {Object} UploadOptionsData
@@ -18,10 +18,7 @@ import { UsageError } from "./usage_error.js";
  */
 
 /**
- * @typedef {object} UploadOptionsData
- * @property {boolean} success
- * @property {import("./logger").LogEntry} [error]
- * @property {import("./logger").LogEntry[]} log
+ * @typedef {object} UploadModuleRunResultData
  * @property {string[]} skipped
  * @property {string[]} uploaded
  */
