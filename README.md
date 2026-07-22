@@ -95,7 +95,9 @@ To import a cables patch (e.g. a backup or a patch created in [cables standalone
 cables import -d patch_export
 ```
 
-**IMPORTANT:** Running this command will overwrite everything in the `my-patch`-folder.
+**IMPORTANT:** In this exampel `./patch_export/` needs a file ending in `.cables` as you would get from an export with `--type patch`.
+
+On successful import this will create a new patch on cables.gl and tell you the new URL.
 
 Additional options to configure your export are available via
 
