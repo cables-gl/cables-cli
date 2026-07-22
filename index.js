@@ -196,5 +196,6 @@ if (runningAsCli)
             cli.log.info(cli.getUsageInfo());
         }
         if (!help) cli.log.error(e.toString());
+
     });
 }

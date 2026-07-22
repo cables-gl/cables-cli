@@ -4,6 +4,7 @@ import archiver from "archiver";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
+import { RuntimeError } from "./runtime_error.js";
 
 /**
  * @typedef {import("./module.js").CliOptionDefinition} CliOptionDefinition
@@ -106,6 +107,24 @@ export class CablesImport extends CablesModule
     {
         return new Promise((resolve, reject) =>
         {
+
+            const dirContents = fs.readdirSync(sourceDir, { "withFileTypes": true });
+            let isPatchExport = false;
+            for (let i = 0; i < dirContents.length; i++)
+            {
+                const dirent = dirContents[i];
+                if (!dirent.isDirectory() && dirent.name.endsWith(CablesModule.CABLES_EXPORT_FILE_ENDING))
+                {
+                    isPatchExport = true;
+                    break;
+                }
+            }
+
+            if (!isPatchExport)
+            {
+                throw new RuntimeError("Directory does not contain a " + CablesModule.CABLES_EXPORT_FILE_ENDING + " file, is this a patch export?");
+            }
+
             const output = fs.createWriteStream(targetZip);
             const archive = archiver("zip", {
                 "zlib": { "level": 0 } // Sets the compression level.

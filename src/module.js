@@ -43,6 +43,7 @@ import { Cables } from "../index.js";
 export class CablesModule
 {
     static CONFIG_FILENAME = ".cablesrc";
+    static CABLES_EXPORT_FILE_ENDING = ".cables";
 
     static CABLES_URL = new URL("https://cables.gl");
     static CABLES_DEV_URL = new URL("https://dev.cables.gl");
