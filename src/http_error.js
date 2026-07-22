@@ -21,7 +21,7 @@ export class HttpError extends Error
             errMessage = "insufficient rights for patch export, or over quota";
             break;
         case 401:
-            errMessage = "insufficient rights for patch export";
+            errMessage = "insufficient rights for patch export, invalid api key?";
             break;
         case 400:
             errMessage = "no rights to patch, invalid api key";

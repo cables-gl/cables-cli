@@ -235,12 +235,12 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                             moduleOptions[optionName] = true;
                         }
                     }
-                    else if (moduleOptions[optionName] === "true")
+                    else if (moduleOptions[optionName] === true || moduleOptions[optionName] === "true")
                     {
                         // option is explicitly set to true
                         moduleOptions[optionName] = true;
                     }
-                    else if (moduleOptions[optionName] === "false")
+                    else if (moduleOptions[optionName] === false || moduleOptions[optionName] === "false")
                     {
                         // option is explicitly set to false
                         moduleOptions[optionName] = false;
