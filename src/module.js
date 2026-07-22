@@ -193,6 +193,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let commandLineOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": !this.getCommandName() });
 
+        console.log("commandLineOptions", commandLineOptions);
+
         const moduleOptions = {};
         moduleOptionDefinitions.forEach((moduleOptionDefinition) =>
         {
@@ -209,9 +211,13 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                     moduleOptions[optionName] = options[optionName];
                 }
             }
-            else
+            else if (commandLineOptions[optionName])
             {
                 moduleOptions[optionName] = commandLineOptions[optionName];
+            }
+            else
+            {
+                moduleOptions[optionName] = moduleOptionDefinition.defaultValue || moduleOptionDefinition.defaultValueBoolean || null;
             }
 
             // try to workaround the fact that type Boolean and default false do not work well
@@ -258,6 +264,8 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
+
+        console.log("FINAL", this._moduleOptions);
 
         if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
         if (moduleOptions[CablesModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesModule.CABLES_DEV_URL;
