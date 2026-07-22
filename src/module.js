@@ -88,9 +88,10 @@ export class CablesModule
         this._globalCliOptions = [
             {
                 "name": CablesModule.MODULE_OPTION_BASE_URL,
-                "description": "Specify URL of cables endpoint to export from (for local development)",
+                "description": "Specify base URL of cables api to use (for local development)",
                 "type": String,
                 "typeLabel": "URL",
+                "defaultValue": CablesModule.CABLES_URL.href
             },
             {
                 "name": CablesModule.MODULE_OPTION_API_KEY,
@@ -102,11 +103,13 @@ export class CablesModule
                 "description": "Loglevel",
                 "type": String,
                 "typeLabel": "<debug|verbose|{underline info}|warn|error>",
+                "defaultValue": "info"
             },
             {
                 "name": CablesModule.MODULE_OPTION_HELP,
                 "alias": "h",
                 "type": Boolean,
+                "defaultValue": false
             },
             {
                 "name": CablesModule.MODULE_OPTION_COMMAND,
@@ -188,9 +191,71 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     {
         options = this._convertLibraryOptions(options);
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
-        let moduleOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": true });
+        let commandLineOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": !this.getCommandName() });
 
-        moduleOptions = { ...moduleOptions, ...options };
+        const moduleOptions = {};
+        moduleOptionDefinitions.forEach((moduleOptionDefinition) =>
+        {
+            const optionName = moduleOptionDefinition.name;
+            if (options[optionName])
+            {
+                const cliOption = commandLineOptions[optionName];
+                if (cliOption && moduleOptionDefinition.defaultValue !== cliOption)
+                {
+                    moduleOptions[optionName] = commandLineOptions[optionName];
+                }
+                else
+                {
+                    moduleOptions[optionName] = options[optionName];
+                }
+            }
+            else
+            {
+                moduleOptions[optionName] = commandLineOptions[optionName];
+            }
+
+            // try to workaround the fact that type Boolean and default false do not work well
+            // in commandline, we want the default for --minifyglsl to be false, but adding --minifyglsl without
+            // a following "true" to enable it...
+            if (moduleOptionDefinition.hasOwnProperty("defaultValueBoolean"))
+            {
+                if (moduleOptions.hasOwnProperty(optionName))
+                {
+                    if (moduleOptions[optionName] === null)
+                    {
+                        // option is explicitly set, but without a value (e.g. --minify)
+                        if (moduleOptionDefinition.defaultValueBoolean)
+                        {
+                            // default value is true, we just enable this
+                            moduleOptions[optionName] = moduleOptionDefinition.defaultValueBoolean;
+                        }
+                        else
+                        {
+                            // default value is false, we enable this regardless (e.g. --minifyglsl)
+                            moduleOptions[optionName] = true;
+                        }
+                    }
+                    else if (moduleOptions[optionName] === "true")
+                    {
+                        // option is explicitly set to true
+                        moduleOptions[optionName] = true;
+                    }
+                    else if (moduleOptions[optionName] === "false")
+                    {
+                        // option is explicitly set to false
+                        moduleOptions[optionName] = false;
+                    }
+                    else if (moduleOptions[optionName])
+                    {
+                        // option is set, has an explicit value, but it's neither "true" nor "false"
+
+                        let message = "ERROR: unknown value '" + moduleOptions[optionName] + "' for --" + optionName + ", use 'true' or 'false'";
+                        throw new UsageError(message);
+                    }
+                }
+            }
+        });
+
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
 
@@ -230,7 +295,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                     {
                         if (!moduleOptions[ro.name])
                         {
-                            let message = "MISSING: " + ro.description + ", use " + (this._cli ? "--" + ro.name : ro.name);
+                            let message = "ERROR: " + ro.description + ", use " + (this._cli ? "--" + ro.name : ro.name);
                             throw new UsageError(message);
                         }
                     });
@@ -238,16 +303,14 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             }
             else
             {
-                const commandNames = Cables.getCommands(true)
-                    .map((c) => { return c.name; });
+                const commandNames = Cables.getCommands(true).map((c) => { return c.name; });
                 const message = "Unknown command '" + moduleOptions[CablesModule.MODULE_OPTION_COMMAND] + "', use one of: " + commandNames.join(", ");
                 throw new UsageError(message);
             }
         }
         else
         {
-            const commandNames = Cables.getCommands(true)
-                .map((c) => { return c.name; });
+            const commandNames = Cables.getCommands(true).map((c) => { return c.name; });
             const message = "No command given, use one of: " + commandNames.join(",");
             throw new UsageError(message);
         }

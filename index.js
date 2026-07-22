@@ -109,7 +109,7 @@ export class Cables extends CablesModule
     }
 
     /**
-     * run raw command, use: export, upload, headless methods instead. otherwise define `command` in options
+     * run raw command, use: export, upload, import methods instead. otherwise define `command` in options
      *
      * @param {import("./src/module.js").ModuleOptions} [options]
      * @returns {Promise<import("./src/module.js").ModuleRunResult>}
@@ -178,14 +178,13 @@ export class Cables extends CablesModule
 if (runningAsCli)
 {
     const cli = new Cables(runningAsCli);
-    cli.run()
-        .catch((e) =>
+    cli.run().catch((e) =>
+    {
+        const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
+        if (e instanceof UsageError)
         {
-            const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
-            if (e instanceof UsageError)
-            {
-                cli.log.info(cli.getUsageInfo());
-            }
-            if (!help) cli.log.error(e.toString());
-        });
+            cli.log.info(cli.getUsageInfo());
+        }
+        if (!help) cli.log.error(e.toString());
+    });
 }

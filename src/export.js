@@ -78,20 +78,23 @@ export class CablesExport extends CablesModule
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
                 "typeLabel": "{underline dir}",
+                "defaultValue": CablesExport.DEFAULT_DESTINATION
             },
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
                 "alias": "i",
                 "description": "Will include index.html in the export.",
                 "type": String,
-                "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXTRACT_ZIP,
                 "alias": "x",
                 "description": "Extract the downloaded zip file",
                 "type": String,
-                "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_JSON_FILENAME,
@@ -105,13 +108,16 @@ export class CablesExport extends CablesModule
                 "alias": "c",
                 "description": "Combine javascript and json into a single patch.js",
                 "type": String,
-                "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_USE_DEV,
                 "alias": "D",
                 "description": "Export from " + CablesModule.CABLES_DEV_URL,
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ASSET_EXPORT,
@@ -125,30 +131,40 @@ export class CablesExport extends CablesModule
                 "name": CablesExport.MODULE_OPTION_FLAT_EXPORT,
                 "alias": "f",
                 "description": "Put js and assets into same directory as index.html (\"flat export\")",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY,
                 "alias": "m",
                 "description": "Minify code",
                 "type": String,
-                "defaultValue": "true",
+                "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
                 "alias": "M",
                 "description": "If code is minified, add sourcemaps to the export",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY_GLSL,
                 "alias": "g",
                 "description": "Minifies shader-code in .frag and .att attachments",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
-                "description": "When exporting with type `patch`, also include core and extension ops"
+                "description": "When exporting with type `patch`, also include core and extension ops",
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             }
         ];
     }
@@ -249,10 +265,9 @@ export class CablesExport extends CablesModule
         }
         catch (e)
         {
-            this.log.error(e.message, e.cause ? e.cause : "");
+            this.log.error(e.toString());
             return this.getResult(false);
         }
-
     }
 
     /**

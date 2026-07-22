@@ -48,7 +48,7 @@ export class CablesImport extends CablesModule
                 "name": CablesImport.MODULE_OPTION_CONVERT_OPS,
                 "description": "Import team- and user-ops as new ops",
                 "type": String,
-                "typeLabel": "<{underline html}|patch|code>",
+                "typeLabel": "<true|{underline false}>",
                 "defaultValue": false,
             }
         ];
