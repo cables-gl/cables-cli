@@ -50,7 +50,7 @@ export class CablesImport extends CablesModule
                 "description": "Import team- and user-ops as new ops",
                 "type": String,
                 "typeLabel": "<true|{underline false}>",
-                "defaultValue": false,
+                "defaultValueBoolean": false
             }
         ];
     }
