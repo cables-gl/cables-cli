@@ -190,7 +190,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let moduleOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": true });
 
-        moduleOptions = { ...options, ...moduleOptions };
+        moduleOptions = { ...moduleOptions, ...options };
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
 
@@ -209,7 +209,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                     this.log.verbose(data.message);
                     return;
                 }
-                return originalEmit.apply(process, arguments);
+                return originalEmit.apply(process, args);
             };
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
