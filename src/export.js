@@ -176,98 +176,92 @@ export class CablesExport extends CablesModule
      */
     async run(options = {})
     {
-        try
+
+        await super.run(options);
+
+        const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
+
+        switch (exportType)
         {
-            await super.run(options);
-
-            const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-
-            switch (exportType)
+        case "code":
+            break;
+        default:
+            const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
+            if (patchIds.length > 1)
             {
-            case "code":
-                break;
-            default:
-                const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
-                if (patchIds.length > 1)
+                throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
+            }
+            const url = this._getExportUrl(patchIds[0]);
+            const reqOptions = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            this.log.info("requesting export...");
+            this.log.info("downloading from", url.href, "...");
+            const response = await fetch(url, reqOptions);
+            if (response.ok)
+            {
+                const json = await response.json();
+                if (json.log && Array.isArray(json.log))
                 {
-                    throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
+                    const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
+                    relevantEntries.forEach((logEntry) =>
+                    {
+                        this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
+                    });
                 }
-                const url = this._getExportUrl(patchIds[0]);
-                const reqOptions = {
-                    "method": "GET",
-                    "headers": { "apikey": this.getApiKey() },
-                };
-                this.log.info("requesting export...");
-                this.log.info("downloading from", url.href, "...");
-                const response = await fetch(url, reqOptions);
-                if (response.ok)
+                let downloadUrl = new URL(json.urls.downloadUrl);
+                const tempFile = await this._downloadZip(downloadUrl);
+                this.log.info("download finished... ", tempFile);
+
+                let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
+                const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
+                if (destination)
                 {
-                    const json = await response.json();
-                    if (json.log && Array.isArray(json.log))
+                    if (path.isAbsolute(destination))
                     {
-                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
-                        relevantEntries.forEach((logEntry) =>
-                        {
-                            this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
-                        });
-                    }
-                    let downloadUrl = new URL(json.urls.downloadUrl);
-                    const tempFile = await this._downloadZip(downloadUrl);
-                    this.log.info("download finished... ", tempFile);
-
-                    let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
-                    const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
-                    if (destination)
-                    {
-                        if (path.isAbsolute(destination))
-                        {
-                            finalDir = destination;
-                        }
-                        else
-                        {
-                            finalDir = path.normalize(path.join(process.cwd(), destination));
-                        }
+                        finalDir = destination;
                     }
                     else
                     {
-                        finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
-                    }
-
-                    if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
-                    {
-                        this.log.info("extracting to " + finalDir);
-                        await extract(tempFile, { "dir": finalDir });
-                        fs.unlinkSync(tempFile);
-                    }
-                    else
-                    {
-                        const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
-                        fs.renameSync(tempFile, finalFilename);
+                        finalDir = path.normalize(path.join(process.cwd(), destination));
                     }
                 }
                 else
                 {
-                    let message = "";
-                    try
-                    {
-                        message = await response.json();
-                        message = message.msg;
-                    }
-                    catch (e)
-                    {
-                        message = "failed to parse error response json: " + e;
-                    }
-                    throw new HttpError(message, response);
+                    finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
                 }
-                break;
+
+                if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
+                {
+                    this.log.info("extracting to " + finalDir);
+                    await extract(tempFile, { "dir": finalDir });
+                    fs.unlinkSync(tempFile);
+                }
+                else
+                {
+                    const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
+                    fs.renameSync(tempFile, finalFilename);
+                }
             }
-            return this.getResult();
+            else
+            {
+                let message = "";
+                try
+                {
+                    message = await response.json();
+                    message = message.msg;
+                }
+                catch (e)
+                {
+                    message = "failed to parse error response json: " + e;
+                }
+                throw new HttpError(message, response);
+            }
+            break;
         }
-        catch (e)
-        {
-            this.log.error(e.toString());
-            return this.getResult(false);
-        }
+        return this.getResult();
+
     }
 
     /**

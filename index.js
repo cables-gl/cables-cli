@@ -116,14 +116,24 @@ export class Cables extends CablesModule
      */
     async run(options = {})
     {
-        await super.run(options);
-        const commandParam = this.getModuleOption(CablesModule.MODULE_OPTION_COMMAND);
-        if (commandParam)
+        try
         {
-            const command = this.getCommand(commandParam);
-            let cliModule = new command.class(this._cli);
-            return cliModule.run(options);
+            await super.run(options);
+            const commandParam = this.getModuleOption(CablesModule.MODULE_OPTION_COMMAND);
+            if (commandParam)
+            {
+                const command = this.getCommand(commandParam);
+                let cliModule = new command.class(this._cli);
+                return await cliModule.run(options);
+            }
         }
+        catch (e)
+        {
+            if (this._cli) throw e;
+            this.log.error(e.message, e.cause ? e.cause : "");
+            return this.getResult(false);
+        }
+
     }
 
     /**

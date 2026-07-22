@@ -11,4 +11,7 @@ cables.export({
 }).then((r) =>
 {
     console.log("RESULT:", r.success ? "OK" : r.error.message);
+}).catch((e) =>
+{
+    console.log("WAT", e);
 });

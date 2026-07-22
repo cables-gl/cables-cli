@@ -193,8 +193,6 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
         let commandLineOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": !this.getCommandName() });
 
-        console.log("commandLineOptions", commandLineOptions);
-
         const moduleOptions = {};
         moduleOptionDefinitions.forEach((moduleOptionDefinition) =>
         {
@@ -265,8 +263,6 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         if (options.command) moduleOptions.command = options.command;
         this._moduleOptions = moduleOptions;
 
-        console.log("FINAL", this._moduleOptions);
-
         if (moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]) this.log.setLogLevel(moduleOptions[CablesModule.MODULE_OPTION_LOGLEVEL]);
         if (moduleOptions[CablesModule.MODULE_OPTION_USE_DEV]) this._baseUrl = CablesModule.CABLES_DEV_URL;
         if (moduleOptions[CablesModule.MODULE_OPTION_BASE_URL]) this._baseUrl = new URL(moduleOptions[CablesModule.MODULE_OPTION_BASE_URL]);
@@ -303,7 +299,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                     {
                         if (!moduleOptions[ro.name])
                         {
-                            let message = "ERROR: " + ro.description + ", use " + (this._cli ? "--" + ro.name : ro.name);
+                            let message = "MISSING: " + ro.description + ", use " + (this._cli ? "--" + ro.name : ro.name);
                             throw new UsageError(message);
                         }
                     });
