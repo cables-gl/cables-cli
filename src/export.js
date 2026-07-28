@@ -328,7 +328,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
         if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) url.searchParams.set("dev", "true");
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === "false") url.searchParams.set("removeIndexHtml", "true");
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false) url.searchParams.set("removeIndexHtml", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME))
         {
             const givenName = this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME);

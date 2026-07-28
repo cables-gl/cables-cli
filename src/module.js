@@ -210,13 +210,13 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                     moduleOptions[optionName] = options[optionName];
                 }
             }
-            else if (commandLineOptions[optionName])
+            else if (commandLineOptions.hasOwnProperty(optionName))
             {
                 moduleOptions[optionName] = commandLineOptions[optionName];
             }
             else
             {
-                moduleOptions[optionName] = moduleOptionDefinition.defaultValue || moduleOptionDefinition.defaultValueBoolean || null;
+                moduleOptions[optionName] = moduleOptionDefinition.defaultValue || moduleOptionDefinition.defaultValueBoolean;
             }
 
             // try to workaround the fact that type Boolean and default false do not work well
