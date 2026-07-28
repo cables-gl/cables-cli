@@ -29,7 +29,7 @@ import { HttpError } from "./http_error.js";
  */
 export class CablesExport extends CablesModule
 {
-    static DEFAULT_DESTINATION = "patch";
+    static DEFAULT_DESTINATION = "";
 
     static MODULE_OPTION_PATCH_ID = "patch";
     static MODULE_OPTION_EXPORT_TYPE = "type";
@@ -257,7 +257,7 @@ export class CablesExport extends CablesModule
                 }
                 else
                 {
-                    const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
+                    const finalFilename = path.join(finalDir, path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl))) + ".zip";
                     fs.renameSync(tempFile, finalFilename);
                 }
             }
