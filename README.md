@@ -67,7 +67,7 @@ cables --export pQpie9 -d "my-patch"
 
 **IMPORTANT:** Running this command will overwrite everything in the `my-patch`-folder.
 
-Additional options to configure your export are available via
+Additional options to configure your export are available via:
 
 ```shell
 cables export --help
@@ -99,13 +99,33 @@ cables import -d patch_export
 
 On successful import this will create a new patch on cables.gl and tell you the new URL.
 
-Additional options to configure your export are available via
+Additional options to configure your import are available via:
 
 ```shell
 cables import --help
 ```
 
 ### Upload
+
+To upload assets to an existing cables patch run:
+
+```shell
+cables upload -p pQpie9 --file myfile.txt
+```
+
+To upload multiple files run:
+
+```shell
+cables upload -p pQpie9 --file myfile.txt myfile2.json
+```
+
+**IMPORTANT:** This will update/overwrite existing files with the same filename.
+
+Additional options to configure your upload are available via:
+
+```shell
+cables import --help
+```
 
 ## Usage as a module
 

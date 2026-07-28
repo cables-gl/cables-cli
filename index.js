@@ -116,6 +116,7 @@ export class Cables extends CablesModule
      */
     async run(options = {})
     {
+        let cliModule = null;
         try
         {
             await super.run(options);
@@ -123,12 +124,23 @@ export class Cables extends CablesModule
             if (commandParam)
             {
                 const command = this.getCommand(commandParam);
-                let cliModule = new command.class(this._cli);
+                cliModule = new command.class(this._cli);
                 return await cliModule.run(options);
             }
         }
         catch (e)
         {
+            if (e instanceof UsageError)
+            {
+                if (cliModule)
+                {
+                    this.log.info(cliModule.getUsageInfo());
+                }
+                else
+                {
+                    this.log.info(this.getUsageInfo());
+                }
+            }
             if (this._cli) throw e;
             this.log.error(e.message, e.cause ? e.cause : "");
             return this.getResult(false);
@@ -191,10 +203,6 @@ if (runningAsCli)
     cli.run().catch((e) =>
     {
         const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
-        if (e instanceof UsageError)
-        {
-            cli.log.info(cli.getUsageInfo());
-        }
         if (!help)
         {
             let message = e.toString();

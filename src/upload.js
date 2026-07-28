@@ -196,7 +196,15 @@ export class CablesUpload extends CablesModule
             }
             else
             {
-                const json = await response.json();
+                let json = {};
+                try
+                {
+                    json = await response.json();
+                }
+                catch (e)
+                {
+                    this.log.debug("failed to parse error response", e);
+                }
                 const msg = this.getHttpResponseErrorMessage(json, response.status);
                 throw new HttpError(msg, response);
             }
