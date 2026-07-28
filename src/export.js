@@ -324,16 +324,17 @@ export class CablesExport extends CablesModule
     _getExportUrl(patchId)
     {
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-        const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
+        let baseUrl = this._baseUrl;
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) baseUrl = CablesModule.CABLES_DEV_URL;
+        const url = new URL("/api/project/" + patchId + "/export", baseUrl);
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) url.searchParams.set("dev", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false) url.searchParams.set("removeIndexHtml", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME))
         {
             const givenName = this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME);
             const jsonName = path.basename(givenName, path.extname(givenName));
-            url.searchParams.set("jsonFilename", jsonName);
+            url.searchParams.set("jsonName", jsonName);
         }
         if (this.getModuleOption(CablesExport.MODULE_OPTION_FLAT_EXPORT)) url.searchParams.set("flat", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_SOURCEMAPS)) url.searchParams.set("sourcemaps", "true");
