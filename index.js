@@ -195,7 +195,12 @@ if (runningAsCli)
         {
             cli.log.info(cli.getUsageInfo());
         }
-        if (!help) cli.log.error(e.toString());
+        if (!help)
+        {
+            let message = e.toString();
+            if (e.cause && e.cause.code) message += " " + e.cause.code;
+            cli.log.error(message);
+        }
 
     });
 }

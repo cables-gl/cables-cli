@@ -181,11 +181,44 @@ export class CablesExport extends CablesModule
 
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
 
-        switch (exportType)
+        if (exportType === "code")
         {
-        case "code":
-            break;
-        default:
+            const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
+            const url = new URL("/api/project/" + patchIds.join(",") + "/export", this._baseUrl);
+            const reqOptions = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            this.log.info("requesting export...");
+            this.log.info("downloading from", url.href, "...");
+            const response = await fetch(url, reqOptions);
+            if (response.ok)
+            {
+                const data = await response.text();
+                this.log.info("download finished... ");
+                const finalDir = this._getDestinationDir();
+                if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
+                const finalFilename = path.join(finalDir, "ops.js");
+                this.log.info("saving to " + finalFilename + "...");
+                fs.writeFileSync(finalFilename, data);
+            }
+            else
+            {
+                let message = "";
+                try
+                {
+                    message = await response.json();
+                    message = message.msg;
+                }
+                catch (e)
+                {
+                    message = "failed to parse error response json: " + e;
+                }
+                throw new HttpError(message, response);
+            }
+        }
+        else
+        {
             const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
             if (patchIds.length > 1)
             {
@@ -214,24 +247,8 @@ export class CablesExport extends CablesModule
                 const tempFile = await this._downloadZip(downloadUrl);
                 this.log.info("download finished... ", tempFile);
 
-                let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
-                const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
-                if (destination)
-                {
-                    if (path.isAbsolute(destination))
-                    {
-                        finalDir = destination;
-                    }
-                    else
-                    {
-                        finalDir = path.normalize(path.join(process.cwd(), destination));
-                    }
-                }
-                else
-                {
-                    finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
-                }
-
+                let finalDir = this._getDestinationDir();
+                if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
                 if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
                 {
                     this.log.info("extracting to " + finalDir);
@@ -258,7 +275,6 @@ export class CablesExport extends CablesModule
                 }
                 throw new HttpError(message, response);
             }
-            break;
         }
         return this.getResult();
 
@@ -280,6 +296,29 @@ export class CablesExport extends CablesModule
     requireApiKey()
     {
         return true;
+    }
+
+    _getDestinationDir()
+    {
+
+        let finalDir = process.cwd();
+        const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
+        if (destination)
+        {
+            if (path.isAbsolute(destination))
+            {
+                finalDir = destination;
+            }
+            else
+            {
+                finalDir = path.normalize(path.join(process.cwd(), destination));
+            }
+        }
+        else
+        {
+            finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
+        }
+        return finalDir;
     }
 
     _getExportUrl(patchId)
