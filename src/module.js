@@ -29,12 +29,15 @@ import { Cables } from "../index.js";
 /**
  * @typedef {Object} CliOptionDefinition
  * @property {string} name
- * @property {Class} type
+ * @property {any} type
  * @property {string} [alias]
  * @property {string} [description]
  * @property {string} [typeLabel]
  * @property {boolean} [multiple=false]
  * @property {boolean} [required=false]
+ * @property {any} [defaultValue]
+ * @property {boolean} [defaultValueBoolean]
+ * @property {boolean} [hidden]
  */
 
 /**
@@ -164,7 +167,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         const localOptions = options.filter(
             (option) =>
             {
-                return option.name !== CablesModule.MODULE_OPTION_COMMAND && !this._globalCliOptions.find((o) => { return o.name === option.name; });
+                return !option.hidden && option.name !== CablesModule.MODULE_OPTION_COMMAND && !this._globalCliOptions.find((o) => { return o.name === option.name; });
             });
         let commandOptions = {};
         if (localOptions.length > 0)

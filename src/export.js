@@ -35,6 +35,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_EXPORT_TYPE = "type";
     static MODULE_OPTION_DESTINATION = "destination";
     static MODULE_OPTION_INDEX_HTML = "index";
+    static MODULE_OPTION_NO_INDEX_HTML = "i";
     static MODULE_OPTION_EXTRACT_ZIP = "extract";
     static MODULE_OPTION_JSON_FILENAME = "jsonfilename";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
@@ -42,6 +43,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_ASSET_EXPORT = "assets";
     static MODULE_OPTION_FLAT_EXPORT = "flat";
     static MODULE_OPTION_MINIFY = "minify";
+    static MODULE_OPTION_NO_MINIFY = "m";
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
@@ -82,11 +84,18 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
-                "alias": "i",
                 "description": "Will include index.html in the export.",
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
                 "defaultValueBoolean": true
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_NO_INDEX_HTML,
+                "alias": "i",
+                "description": "Will exclude index.html in the export.",
+                "type": Boolean,
+                "defaultValue": false,
+                "hidden": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXTRACT_ZIP,
@@ -137,11 +146,19 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY,
-                "alias": "m",
                 "description": "Minify code",
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
                 "defaultValueBoolean": true
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_NO_MINIFY,
+                "alias": "m",
+                "description": "Do not minify code",
+                "type": Boolean,
+                "typeLabel": "<true,{underline false}>",
+                "defaultValue": false,
+                "hidden": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
@@ -329,7 +346,9 @@ export class CablesExport extends CablesModule
         const url = new URL("/api/project/" + patchId + "/export", baseUrl);
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false) url.searchParams.set("removeIndexHtml", "true");
+        let removeIndexHtml = this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false;
+        if (!removeIndexHtml && this.getModuleOption(CablesExport.MODULE_OPTION_NO_INDEX_HTML)) removeIndexHtml = true;
+        if (removeIndexHtml) url.searchParams.set("removeIndexHtml", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME))
         {
             const givenName = this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME);
@@ -339,7 +358,9 @@ export class CablesExport extends CablesModule
         if (this.getModuleOption(CablesExport.MODULE_OPTION_FLAT_EXPORT)) url.searchParams.set("flat", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_SOURCEMAPS)) url.searchParams.set("sourcemaps", "true");
 
-        url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
+        let minifyCode = this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY);
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_NO_MINIFY)) minifyCode = false;
+        url.searchParams.set("minify", minifyCode);
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
