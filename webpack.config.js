@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default () =>
 {
-    const patchFile = path.resolve(args[0]);
+    const patchFile = args[0] ? path.resolve(args[0]) : path.join(__dirname, "dino/tick_tock.cables");
     let targetDir = args[1] || path.join(__dirname, "build");
     targetDir = path.resolve(targetDir);
     const buildConfig = cablesBuildConfig({
@@ -17,7 +17,7 @@ export default () =>
             "path": targetDir
         },
         "options": {
-
+            "indexHtml": true
         }
     });
     return buildConfig;
