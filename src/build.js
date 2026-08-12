@@ -1,4 +1,3 @@
-import jsonfile from "jsonfile";
 import webpack from "webpack";
 import path from "path";
 import process from "process";
@@ -20,7 +19,6 @@ import { CablesModule } from "./module.js";
 
 /**
  * @typedef {object} CablesBuildOptions
- * @property {string} buildMode
  * @property {boolean} combinejs
  * @property {boolean} flat
  * @property {boolean} minify
@@ -140,8 +138,6 @@ export class CablesBuild extends CablesModule
         {
             await super.run(options);
             const patchFile = this.getModuleOption(CablesBuild.MODULE_OPTION_PATCH_FILE);
-            const patchJson = jsonfile.readFileSync(patchFile);
-            const sourceDir = path.resolve(path.dirname(patchFile));
             let finalDir = null;
             const destination = this.getModuleOption(CablesBuild.MODULE_OPTION_DESTINATION);
             if (destination)
@@ -176,7 +172,6 @@ export class CablesBuild extends CablesModule
 
             /** @type {CablesBuildOptions} */
             const buildOptions = {
-                "buildMode": "development", // FIXME
                 "minify": this.getModuleOption(CablesBuild.MODULE_OPTION_MINIFY) === "true",
                 "sourcemaps": this.getModuleOption(CablesBuild.MODULE_OPTION_SOURCEMAPS) === "true",
                 "flat": false, // FIXME
@@ -185,7 +180,16 @@ export class CablesBuild extends CablesModule
                 "indexHtml": this.getModuleOption(CablesBuild.MODULE_OPTION_INDEX_HTML) === "true",
                 "clean": clean
             };
-            await this._runWebpack(patchJson, sourceDir, finalDir, buildOptions);
+
+            const cablesWebpackConfig = {
+                "entry": patchFile,
+                "mode": "development", // FIXME
+                "output": {
+                    "path": finalDir
+                },
+                "options": buildOptions
+            };
+            await this._runWebpack(cablesWebpackConfig);
             return this.getResult(true);
         }
         catch (e)
@@ -204,11 +208,11 @@ export class CablesBuild extends CablesModule
      * @param {CablesBuildOptions} options
      * @returns {Promise}
      */
-    _runWebpack(patchJson, sourceDir, targetDir, options)
+    _runWebpack(config)
     {
         return new Promise((resolve, reject) =>
         {
-            webpack(webpackConfig(this, patchJson, sourceDir, targetDir, options),
+            webpack(webpackConfig(config, this.log),
                 (err, stats) =>
                 {
                     if (err)
