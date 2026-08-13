@@ -67,5 +67,8 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/cables-gl/cables-cli.git"
+    },
+    "allowScripts": {
+        "github:cables-gl/cables#a4f469494f8278c7a4f2f8389cfdee2a0dfa8102": true
     }
 }
