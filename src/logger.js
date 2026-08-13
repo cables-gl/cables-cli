@@ -91,6 +91,19 @@ export class Logger
         });
     }
 
+    log(...args)
+    {
+        const level = "info";
+        if (this._logLevelFiltered(level)) return;
+        const initiator = this._initiator;
+        const context = this._getContext(args);
+        const loggers = this._services.filter((s) => { return s.levels.includes(level); });
+        loggers.forEach((l) =>
+        {
+            l.log(initiator, level, context, args);
+        });
+    }
+
     verbose(...args)
     {
         const level = "verbose";

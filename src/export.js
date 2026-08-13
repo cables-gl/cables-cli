@@ -191,6 +191,7 @@ export class CablesExport extends CablesModule
                 "type": Boolean,
                 "defaultValue": false,
             }
+        ];
     }
 
     /**

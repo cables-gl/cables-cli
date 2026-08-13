@@ -11,13 +11,14 @@ export default () =>
     let targetDir = args[1] || path.join(__dirname, "build");
     targetDir = path.resolve(targetDir);
     const buildConfig = cablesBuildConfig({
+        "test": "kram",
         "mode": "development",
         "entry": patchFile,
         "output": {
             "path": targetDir
         },
         "options": {
-            "indexHtml": true
+            "index": true
         }
     });
     return buildConfig;

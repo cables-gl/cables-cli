@@ -6,6 +6,8 @@ import webpackConfig from "./webpack/webpack.config.js";
 import { Cables } from "../index.js";
 import { CablesModule } from "./module.js";
 
+/** @typedef {import("./webpack/webpack.config.js").CablesBuildOptions} CablesBuildOptions */
+/** @typedef {import("./webpack/webpack.config.js").CablesWebpackConfig} CablesWebpackConfig */
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
 /** @typedef {ModuleOptions & BuildOptionsData} BuildModuleOptions */
@@ -15,17 +17,6 @@ import { CablesModule } from "./module.js";
 /**
  * @typedef {object} BuildOptionsData
  * @property {string} file
- */
-
-/**
- * @typedef {object} CablesBuildOptions
- * @property {boolean} combinejs
- * @property {boolean} flat
- * @property {boolean} minify
- * @property {boolean} sourcemaps
- * @property {boolean} minifyglsl
- * @property {boolean} clean
- * @property {boolean} indexHtml
  */
 
 export class CablesBuild extends CablesModule
@@ -194,7 +185,7 @@ export class CablesBuild extends CablesModule
         }
         catch (e)
         {
-            const cause = e.cause?.message || e.cause || "";
+            const cause = e.cause?.message || e.cause || "";
             this.log.error(e.message, cause);
             return this.getResult(false);
         }
@@ -202,10 +193,7 @@ export class CablesBuild extends CablesModule
     }
 
     /**
-     * @param {any} patchJson
-     * @param {string} sourceDir
-     * @param {string} targetDir
-     * @param {CablesBuildOptions} options
+     * @param {CablesWebpackConfig} config
      * @returns {Promise}
      */
     _runWebpack(config)

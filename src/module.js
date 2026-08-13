@@ -10,9 +10,10 @@ import { UsageError } from "./usage_error.js";
 import { Logger } from "./logger.js";
 import { Cables } from "../index.js";
 
+/** @typedef {import("../index.js".CommandDefinition} CommandDefinition */
 /**
  * @typedef {Object} ModuleOptions
- * @property command
+ * @property [command]
  * @property [apikey]
  * @property [url]
  * @property [help]
@@ -23,7 +24,7 @@ import { Cables } from "../index.js";
  * @typedef {Object} ModuleRunResult
  * @property {boolean} success
  * @property {import("./logger").LogEntry} [error] last error with full information
- * @property {Array<import("./logger").LogEntry>} log array of lines logged during run
+ * @property {Array<import("./logger").LogEntry>} [log] array of lines logged during run
  */
 
 /**
@@ -38,6 +39,7 @@ import { Cables } from "../index.js";
  * @property {any} [defaultValue]
  * @property {boolean} [defaultValueBoolean]
  * @property {boolean} [hidden]
+ * @property {boolean} [defaultOption]
  */
 
 /**
@@ -114,6 +116,7 @@ export class CablesModule
             },
             {
                 "name": CablesModule.MODULE_OPTION_COMMAND,
+                "type": String,
                 "defaultOption": true,
             },
 
@@ -186,7 +189,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
      *
      * @param {ModuleOptions} options
      * @throws UsageError
-     * @returns {Promise<boolean>}
+     * @returns {Promise}
      */
     async initModule(options = {})
     {
@@ -385,8 +388,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
      */
     getCommand(name)
     {
-        return Cables.getCommands()
-            .find((c) => { return c.name === name; });
+        return Cables.getCommands().find((c) => { return c.name === name; });
     }
 
     /**
