@@ -1,23 +1,18 @@
 import path from "path";
-import { fileURLToPath } from "url";
 import cablesBuildConfig from "./src/webpack/webpack.config.js";
-
-const args = process.argv.slice(2);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default () =>
 {
-    const patchFile = args[0] ? path.resolve(args[0]) : path.join(__dirname, "dino/tick_tock.cables");
-    let targetDir = args[1] || path.join(__dirname, "build");
-    targetDir = path.resolve(targetDir);
     const buildConfig = cablesBuildConfig({
         "mode": "development",
-        "entry": patchFile,
+        "entry": path.resolve("./schwarz/schwarz_city_circle.cables"),
         "output": {
-            "path": targetDir
+            "path": path.resolve("./build"),
         },
         "options": {
-            "index": true
+            "minify": false,
+            "combinejs": true,
+            "index": false
         }
     });
     return buildConfig;
