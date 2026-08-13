@@ -197,7 +197,6 @@ export class CablesExport extends CablesModule
         await super.run(options);
 
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-
         if (exportType === "code")
         {
             const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
@@ -209,7 +208,7 @@ export class CablesExport extends CablesModule
             this.log.info("requesting export...");
             this.log.info("downloading from", url.href, "...");
             const response = await fetch(url, reqOptions);
-            if (response.ok)
+            if (response.ok && response.status === 200)
             {
                 const data = await response.text();
                 this.log.info("download finished... ");
@@ -224,8 +223,8 @@ export class CablesExport extends CablesModule
                 let message = "";
                 try
                 {
-                    message = await response.json();
-                    message = message.msg;
+                    const json = await response.json();
+                    message = this.getHttpResponseErrorMessage(json, response.status);
                 }
                 catch (e)
                 {
@@ -249,7 +248,7 @@ export class CablesExport extends CablesModule
             this.log.info("requesting export...");
             this.log.info("downloading from", url.href, "...");
             const response = await fetch(url, reqOptions);
-            if (response.ok)
+            if (response.ok && response.status === 200)
             {
                 const json = await response.json();
                 if (json.log && Array.isArray(json.log))
@@ -283,8 +282,8 @@ export class CablesExport extends CablesModule
                 let message = "";
                 try
                 {
-                    message = await response.json();
-                    message = message.msg;
+                    const json = await response.json();
+                    message = this.getHttpResponseErrorMessage(json, response.status);
                 }
                 catch (e)
                 {

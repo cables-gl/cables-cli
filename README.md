@@ -147,16 +147,18 @@ Simple Export Example:
 ```javascript
 import { Cables } from "@cables/cables";
 
-cables.export(
-    {
-        "patch": "pQpie9",
-        "destination": "patch",
-    }
-).then(()) => {
-    console.log("Export finished!");
-}.catch((err) => {
-    console.log("There was an error exporting your patch :/");
-});
+const cables = new Cables();
+cables
+    .export({
+        patch: "pQpie9",
+        destination: "patch",
+    })
+    .then(() => {
+        console.log("Export finished!");
+    })
+    .catch((err) => {
+        console.log("There was an error exporting your patch :/");
+    });
 ```
 
 ## Usage in package.json:

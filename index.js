@@ -132,13 +132,16 @@ export class Cables extends CablesModule
         {
             if (e instanceof UsageError)
             {
-                if (cliModule)
+                if (this._cli)
                 {
-                    this.log.info(cliModule.getUsageInfo());
-                }
-                else
-                {
-                    this.log.info(this.getUsageInfo());
+                    if (cliModule)
+                    {
+                        this.log.info(cliModule.getUsageInfo());
+                    }
+                    else
+                    {
+                        this.log.info(this.getUsageInfo());
+                    }
                 }
             }
             if (this._cli) throw e;

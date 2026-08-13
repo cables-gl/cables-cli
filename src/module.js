@@ -70,11 +70,8 @@ export class CablesModule
 
         this._localConfigFileLocation = null;
         this._localConfig = {};
-        if (runningAsCli)
-        {
-            this._localConfigFileLocation = path.join(os.homedir(), CablesModule.CONFIG_FILENAME);
-            this._localConfig = this._readLocalConfig();
-        }
+        this._localConfigFileLocation = path.join(os.homedir(), CablesModule.CONFIG_FILENAME);
+        this._localConfig = this._readLocalConfig();
 
         this._moduleOptions = {};
         this._commandUsage = {};
@@ -201,7 +198,7 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         moduleOptionDefinitions.forEach((moduleOptionDefinition) =>
         {
             const optionName = moduleOptionDefinition.name;
-            if (options[optionName])
+            if (options.hasOwnProperty(optionName))
             {
                 const cliOption = commandLineOptions[optionName];
                 if (cliOption && moduleOptionDefinition.defaultValue !== cliOption)
@@ -294,7 +291,6 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 if (this.getCommandName() && moduleOptions[CablesModule.MODULE_OPTION_HELP])
                 {
                     this.log.info(this.getUsageInfo());
-                    // throw new UsageError(this.getUsageInfo());
                 }
                 else
                 {
