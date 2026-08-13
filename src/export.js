@@ -9,11 +9,11 @@ import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
-/** @typedef {ModuleOptions & ExportOptionsDaa} ExportModuleOptions */
+/** @typedef {ModuleOptions & ExportOptionsData} ExportModuleOptions */
 /** @typedef {ModuleRunResult} ExportModuleRunResult  */
 
 /**
- * @typedef {object} ExportOptionsDaa
+ * @typedef {object} ExportOptionsData
  * @property {string} patch
  * @property {("html"|"patch"|"code")} [type="html"]
  * @property {string|null} [destination]
