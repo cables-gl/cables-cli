@@ -30,12 +30,13 @@ import { Cables } from "../index.js";
  */
 export class CablesExport extends CablesModule
 {
-    static DEFAULT_DESTINATION = "patch";
+    static DEFAULT_DESTINATION = "";
 
     static MODULE_OPTION_PATCH_ID = "patch";
     static MODULE_OPTION_EXPORT_TYPE = "type";
     static MODULE_OPTION_DESTINATION = "destination";
     static MODULE_OPTION_INDEX_HTML = "index";
+    static MODULE_OPTION_NO_INDEX_HTML = "i";
     static MODULE_OPTION_EXTRACT_ZIP = "extract";
     static MODULE_OPTION_JSON_FILENAME = "jsonfilename";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
@@ -43,6 +44,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_ASSET_EXPORT = "assets";
     static MODULE_OPTION_FLAT_EXPORT = "flat";
     static MODULE_OPTION_MINIFY = "minify";
+    static MODULE_OPTION_NO_MINIFY = "m";
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
@@ -80,22 +82,30 @@ export class CablesExport extends CablesModule
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
                 "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
+                "defaultValue": CablesExport.DEFAULT_DESTINATION
             },
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
-                "alias": "i",
                 "description": "Will include index.html in the export.",
                 "type": String,
-                "defaultValue": "true",
                 "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_NO_INDEX_HTML,
+                "alias": "i",
+                "description": "Will exclude index.html in the export.",
+                "type": Boolean,
+                "defaultValue": false,
+                "hidden": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXTRACT_ZIP,
                 "alias": "x",
                 "description": "Extract the downloaded zip file",
                 "type": String,
-                "defaultValue": "true",
                 "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_JSON_FILENAME,
@@ -109,14 +119,16 @@ export class CablesExport extends CablesModule
                 "alias": "c",
                 "description": "Combine javascript and json into a single patch.js",
                 "type": String,
-                "defaultValue": "true",
                 "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_USE_DEV,
                 "alias": "D",
                 "description": "Export from " + CablesModule.CABLES_DEV_URL,
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ASSET_EXPORT,
@@ -130,40 +142,55 @@ export class CablesExport extends CablesModule
                 "name": CablesExport.MODULE_OPTION_FLAT_EXPORT,
                 "alias": "f",
                 "description": "Put js and assets into same directory as index.html (\"flat export\")",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY,
-                "alias": "m",
                 "description": "Minify code",
                 "type": String,
-                "defaultValue": "true",
                 "typeLabel": "<{underline true}|false>",
+                "defaultValueBoolean": true
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_NO_MINIFY,
+                "alias": "m",
+                "description": "Do not minify code",
+                "type": Boolean,
+                "typeLabel": "<true,{underline false}>",
+                "defaultValue": false,
+                "hidden": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
                 "alias": "M",
                 "description": "If code is minified, add sourcemaps to the export",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY_GLSL,
                 "alias": "g",
                 "description": "Minifies shader-code in .frag and .att attachments",
-                "type": Boolean,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
                 "description": "When exporting with type `patch`, also include core and extension ops",
-                "type": Boolean
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_CLEAN,
                 "description": "Remove destination folder before building",
                 "type": Boolean,
                 "defaultValue": false,
-            },
-        ];
+            }
     }
 
     /**
@@ -173,108 +200,115 @@ export class CablesExport extends CablesModule
      */
     async run(options = {})
     {
-        try
+
+        await super.run(options);
+
+        const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
+        if (exportType === "code")
         {
-            await super.run(options);
-
-            const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-
-            switch (exportType)
+            const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
+            const url = new URL("/api/project/" + patchIds.join(",") + "/export", this._baseUrl);
+            const reqOptions = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            this.log.info("requesting export...");
+            this.log.info("downloading from", url.href, "...");
+            const response = await fetch(url, reqOptions);
+            if (response.ok && response.status === 200)
             {
-            case "code":
-                break;
-            default:
-                const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
-                if (patchIds.length > 1)
-                {
-                    throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
-                }
-                const url = this._getExportUrl(patchIds[0]);
-                const reqOptions = {
-                    "method": "GET",
-                    "headers": { "apikey": this.getApiKey() },
-                };
-                this.log.info("requesting export...");
-                this.log.info("downloading from", url.href, "...");
-                const response = await fetch(url, reqOptions);
-                if (response.ok)
+                const data = await response.text();
+                this.log.info("download finished... ");
+                const finalDir = this._getDestinationDir();
+                if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
+                const finalFilename = path.join(finalDir, "ops.js");
+                this.log.info("saving to " + finalFilename + "...");
+                fs.writeFileSync(finalFilename, data);
+            }
+            else
+            {
+                let message = "";
+                try
                 {
                     const json = await response.json();
-                    if (json.log && Array.isArray(json.log))
+                    message = this.getHttpResponseErrorMessage(json, response.status);
+                }
+                catch (e)
+                {
+                    message = "failed to parse error response json: " + e;
+                }
+                throw new HttpError(message, response);
+            }
+        }
+        else
+        {
+            const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
+            if (patchIds.length > 1)
+            {
+                throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
+            }
+            const url = this._getExportUrl(patchIds[0]);
+            const reqOptions = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            this.log.info("requesting export...");
+            this.log.info("downloading from", url.href, "...");
+            const response = await fetch(url, reqOptions);
+            if (response.ok && response.status === 200)
+            {
+                const json = await response.json();
+                if (json.log && Array.isArray(json.log))
+                {
+                    const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
+                    relevantEntries.forEach((logEntry) =>
                     {
-                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
-                        relevantEntries.forEach((logEntry) =>
-                        {
-                            this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
-                        });
-                    }
-                    let downloadUrl = new URL(json.urls.downloadUrl);
-                    const tempFile = await this._downloadZip(downloadUrl);
-                    this.log.info("download finished... ", tempFile);
+                        this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
+                    });
+                }
+                let downloadUrl = new URL(json.urls.downloadUrl);
+                const tempFile = await this._downloadZip(downloadUrl);
+                this.log.info("download finished... ", tempFile);
 
-                    let finalDir = path.join(process.cwd(), path.basename(json.urls.downloadUrl));
-                    const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
-                    if (destination)
-                    {
-                        if (path.isAbsolute(destination))
-                        {
-                            finalDir = destination;
-                        }
-                        else
-                        {
-                            finalDir = path.normalize(path.join(process.cwd(), destination));
-                        }
-                    }
-                    else
-                    {
-                        finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
-                    }
+                let finalDir = this._getDestinationDir();
+                if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+                {
+                    this.log.info("removing destination directory", finalDir);
+                    fs.rmSync(finalDir, {
+                        "recursive": true,
+                        "force": true,
+                    });
+                }
 
-                    if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
-                    {
-                        this.log.info("removing destination directory", finalDir);
-                        fs.rmSync(finalDir, {
-                            "recursive": true,
-                            "force": true,
-                        });
-                    }
-
-                    if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
-                    {
-                        this.log.info("extracting to " + finalDir);
-                        await extract(tempFile, { "dir": finalDir });
-                        fs.unlinkSync(tempFile);
-                    }
-                    else
-                    {
-                        const finalFilename = finalDir + path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl)) + ".zip";
-                        fs.renameSync(tempFile, finalFilename);
-                    }
+                if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
+                if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
+                {
+                    this.log.info("extracting to " + finalDir);
+                    await extract(tempFile, { "dir": finalDir });
+                    fs.unlinkSync(tempFile);
                 }
                 else
                 {
-                    let message = "";
-                    try
-                    {
-                        message = await response.json();
-                        message = message.msg;
-                    }
-                    catch (e)
-                    {
-                        message = "failed to parse error response json: " + e;
-                    }
-                    throw new HttpError(message, response);
+                    const finalFilename = path.join(finalDir, path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl))) + ".zip";
+                    fs.renameSync(tempFile, finalFilename);
                 }
-                break;
             }
-            return this.getResult();
+            else
+            {
+                let message = "";
+                try
+                {
+                    const json = await response.json();
+                    message = this.getHttpResponseErrorMessage(json, response.status);
+                }
+                catch (e)
+                {
+                    message = "failed to parse error response json: " + e;
+                }
+                throw new HttpError(message, response);
+            }
         }
-        catch (e)
-        {
-            const cause = e.cause?.message || e.cause || "";
-            this.log.error(e.message, cause);
-            return this.getResult(false);
-        }
+        return this.getResult();
 
     }
 
@@ -296,24 +330,52 @@ export class CablesExport extends CablesModule
         return true;
     }
 
+    _getDestinationDir()
+    {
+
+        let finalDir = process.cwd();
+        const destination = this.getModuleOption(CablesExport.MODULE_OPTION_DESTINATION);
+        if (destination)
+        {
+            if (path.isAbsolute(destination))
+            {
+                finalDir = destination;
+            }
+            else
+            {
+                finalDir = path.normalize(path.join(process.cwd(), destination));
+            }
+        }
+        else
+        {
+            finalDir = path.join(process.cwd(), CablesExport.DEFAULT_DESTINATION);
+        }
+        return finalDir;
+    }
+
     _getExportUrl(patchId)
     {
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-        const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
+        let baseUrl = this._baseUrl;
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) baseUrl = CablesModule.CABLES_DEV_URL;
+        const url = new URL("/api/project/" + patchId + "/export", baseUrl);
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) url.searchParams.set("dev", "true");
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === "false") url.searchParams.set("removeIndexHtml", "true");
+        let removeIndexHtml = this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false;
+        if (!removeIndexHtml && this.getModuleOption(CablesExport.MODULE_OPTION_NO_INDEX_HTML)) removeIndexHtml = true;
+        if (removeIndexHtml) url.searchParams.set("removeIndexHtml", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME))
         {
             const givenName = this.getModuleOption(CablesExport.MODULE_OPTION_JSON_FILENAME);
             const jsonName = path.basename(givenName, path.extname(givenName));
-            url.searchParams.set("jsonFilename", jsonName);
+            url.searchParams.set("jsonName", jsonName);
         }
         if (this.getModuleOption(CablesExport.MODULE_OPTION_FLAT_EXPORT)) url.searchParams.set("flat", "true");
         if (this.getModuleOption(CablesExport.MODULE_OPTION_SOURCEMAPS)) url.searchParams.set("sourcemaps", "true");
 
-        url.searchParams.set("minify", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY));
+        let minifyCode = this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY);
+        if (this.getModuleOption(CablesExport.MODULE_OPTION_NO_MINIFY)) minifyCode = false;
+        url.searchParams.set("minify", minifyCode);
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
 

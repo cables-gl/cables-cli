@@ -5,6 +5,7 @@ import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
 import { Cables } from "../index.js";
+import { RuntimeError } from "./runtime_error.js";
 
 /**
  * @typedef {import("./module.js").CliOptionDefinition} CliOptionDefinition
@@ -48,7 +49,9 @@ export class CablesImport extends CablesModule
             {
                 "name": CablesImport.MODULE_OPTION_CONVERT_OPS,
                 "description": "Import team- and user-ops as new ops",
-                "type": Boolean
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             }
         ];
     }
@@ -60,26 +63,19 @@ export class CablesImport extends CablesModule
      */
     async run(options = {})
     {
-        try
-        {
-            await super.run(options);
-            const zipFile = "./patch.zip";
-            const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
-            await this._createPatchZip(patchDir, zipFile);
-            const result = await this._uploadZip(zipFile);
-            if (result && result.data?.projectId)
-            {
-                this.log.info("Success, imported projecturl:", this._baseUrl + "p/" + result.data.projectId);
-            }
-            return this.getResult();
 
-        }
-        catch (e)
+        await super.run(options);
+        const zipFile = "./patch.zip";
+        const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
+        await this._createPatchZip(patchDir, zipFile);
+        const result = await this._uploadZip(zipFile);
+        if (result && result.data?.projectId)
         {
-            const cause = e.cause?.message || e.cause || "";
-            this.log.error(e.message, cause);
-            return this.getResult(false);
+            let url = this._baseUrl.href;
+            if (!url.endsWith("/")) url += "/";
+            this.log.info("Success, imported new patch url:", url + "p/" + result.data.projectId);
         }
+        return this.getResult();
 
     }
 
@@ -112,6 +108,24 @@ export class CablesImport extends CablesModule
     {
         return new Promise((resolve, reject) =>
         {
+
+            const dirContents = fs.readdirSync(sourceDir, { "withFileTypes": true });
+            let isPatchExport = false;
+            for (let i = 0; i < dirContents.length; i++)
+            {
+                const dirent = dirContents[i];
+                if (!dirent.isDirectory() && dirent.name.endsWith(CablesModule.CABLES_EXPORT_FILE_ENDING))
+                {
+                    isPatchExport = true;
+                    break;
+                }
+            }
+
+            if (!isPatchExport)
+            {
+                throw new RuntimeError("Directory does not contain a " + CablesModule.CABLES_EXPORT_FILE_ENDING + " file, is this a patch export?");
+            }
+
             const output = fs.createWriteStream(targetZip);
             const archive = archiver("zip", {
                 "zlib": { "level": 0 } // Sets the compression level.

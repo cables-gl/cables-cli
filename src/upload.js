@@ -88,135 +88,133 @@ export class CablesUpload extends CablesModule
      */
     async run(options = {})
     {
-        try
+
+        await super.run(options);
+
+        const patchId = this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID);
+        const newOnly = this.getModuleOption(CablesUpload.MODULE_OPTION_NEW_ONLY);
+
+        const givenFiles = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
+        let uploadFiles = [];
+        let skippedFiles = [];
+        if (newOnly)
         {
-            await super.run(options);
-
-            const patchId = this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID);
-            const newOnly = this.getModuleOption(CablesUpload.MODULE_OPTION_NEW_ONLY);
-
-            const givenFiles = this.getModuleOption(CablesUpload.MODULE_OPTION_UPLOAD_FILES);
-            let uploadFiles = [];
-            let skippedFiles = [];
-            if (newOnly)
+            const md5Url = this._getUrl("/api/project/" + patchId + "/files?hashes=true");
+            const md5Options = {
+                "method": "GET",
+                "headers": { "apikey": this.getApiKey() },
+            };
+            let md5response = {
+                "ok": false,
+            };
+            try
             {
-                const md5Url = this._getUrl("/api/project/" + patchId + "/files?hashes=true");
-                const md5Options = {
-                    "method": "GET",
-                    "headers": { "apikey": this.getApiKey() },
-                };
-                let md5response = {
-                    "ok": false,
-                };
-                try
+                md5response = await fetch(md5Url, md5Options);
+            }
+            catch (e)
+            {
+                // error is handled below in else case
+            }
+            if (md5response.ok && md5response.status === 200)
+            {
+                const remoteFiles = await md5response.json();
+                const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary; });
+                givenFiles.forEach((givenFile) =>
                 {
-                    md5response = await fetch(md5Url, md5Options);
-                }
-                catch (e)
-                {
-                    // error is handled below in else case
-                }
-                if (md5response.ok && md5response.status === 200)
-                {
-                    const remoteFiles = await md5response.json();
-                    const patchFiles = remoteFiles.filter((patchFile) => { return !patchFile.isReference && !patchFile.isLibrary; });
-                    givenFiles.forEach((givenFile) =>
+                    const baseName = path.basename(givenFile);
+                    const localHash = md5File.sync(givenFile);
+                    const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName; });
+                    if (remoteFile && remoteFile.hash)
                     {
-                        const baseName = path.basename(givenFile);
-                        const localHash = md5File.sync(givenFile);
-                        const remoteFile = patchFiles.find((patchFile) => { return patchFile.name === baseName; });
-                        if (remoteFile && remoteFile.hash)
-                        {
-                            if (localHash !== remoteFile.hash)
-                            {
-                                uploadFiles.push(givenFile);
-                            }
-                            else
-                            {
-                                skippedFiles.push(givenFile);
-                                this.log.info("Skipping upload of", remoteFile.name, "same hash");
-                            }
-                        }
-                        else
+                        if (localHash !== remoteFile.hash)
                         {
                             uploadFiles.push(givenFile);
                         }
-                    });
-                }
-                else
-                {
-                    this.log.warn("Failed to get list of md5 hashes, treating all uploads as new!");
-                    uploadFiles = givenFiles;
-                }
+                        else
+                        {
+                            skippedFiles.push(givenFile);
+                            this.log.info("Skipping upload of", remoteFile.name, "same hash");
+                        }
+                    }
+                    else
+                    {
+                        uploadFiles.push(givenFile);
+                    }
+                });
             }
             else
             {
+                this.log.warn("Failed to get list of md5 hashes, treating all uploads as new!");
                 uploadFiles = givenFiles;
             }
+        }
+        else
+        {
+            uploadFiles = givenFiles;
+        }
 
-            const url = this._getUrl("/api/project/" + patchId + "/file");
+        const url = this._getUrl("/api/project/" + patchId + "/file");
 
-            const filePaths = this._getFileLocations(uploadFiles);
-            if (givenFiles.length === 0)
+        const filePaths = this._getFileLocations(uploadFiles);
+        if (givenFiles.length === 0)
+        {
+            throw new UsageError("No files to upload! Given file(s) were \"" + givenFiles.join(",") + "\"");
+        }
+
+        if (filePaths.length > 0)
+        {
+            const form = new FormData();
+            let pos = 0;
+            for (const filePath of filePaths)
             {
-                throw new UsageError("No files to upload! Given file(s) were \"" + givenFiles.join(",") + "\"");
+                if (filePath)
+                {
+                    // eslint-disable-next-line no-await-in-loop
+                    const file = await fs.openAsBlob(filePath);
+                    form.append(String(pos), file, path.basename(filePath));
+                    pos++;
+                }
             }
 
-            if (filePaths.length > 0)
+            if (filePaths.length > 1)
             {
-                const form = new FormData();
-                let pos = 0;
-                for (const filePath of filePaths)
-                {
-                    if (filePath)
-                    {
-                        // eslint-disable-next-line no-await-in-loop
-                        const file = await fs.openAsBlob(filePath);
-                        form.append(String(pos), file, path.basename(filePath));
-                        pos++;
-                    }
-                }
-
-                if (filePaths.length > 1)
-                {
-                    this.log.info("Uploading", filePaths.length, " files to", url.href, "...");
-                }
-                else
-                {
-                    this.log.info("Uploading", filePaths[0], "to", url.href, "...");
-
-                }
-                const reqOptions = {
-                    "method": "POST",
-                    "headers": { "apikey": this.getApiKey() },
-                    "body": form,
-                };
-                const response = await fetch(url, reqOptions);
-                if (response.ok && response.status === 200)
-                {
-                    this.log.info("Success!");
-                }
-                else
-                {
-                    const json = await response.json();
-                    const msg = this.getHttpResponseErrorMessage(json, response.status);
-                    throw new HttpError(msg, response);
-                }
-                return this.getResult(true, [], skippedFiles, uploadFiles);
+                this.log.info("Uploading", filePaths.length, " files to", url.href, "...");
             }
             else
             {
-                return this.getResult(true, [], skippedFiles, uploadFiles);
+                this.log.info("Uploading", filePaths[0], "to", url.href, "...");
+
             }
-
+            const reqOptions = {
+                "method": "POST",
+                "headers": { "apikey": this.getApiKey() },
+                "body": form,
+            };
+            const response = await fetch(url, reqOptions);
+            if (response.ok && response.status === 200)
+            {
+                this.log.info("Success!");
+            }
+            else
+            {
+                let json = {};
+                try
+                {
+                    json = await response.json();
+                }
+                catch (e)
+                {
+                    this.log.debug("failed to parse error response", e);
+                }
+                const msg = this.getHttpResponseErrorMessage(json, response.status);
+                throw new HttpError(msg, response);
+            }
+            return this.getResult(true, [], skippedFiles, uploadFiles);
         }
-        catch (e)
+        else
         {
-            const cause = e.cause?.message || e.cause || "";
-            this.log.error(e.message, cause);
-            return this.getResult(false);
+            return this.getResult(true, [], skippedFiles, uploadFiles);
         }
-
     }
 
     /**

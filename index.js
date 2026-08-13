@@ -117,21 +117,46 @@ export class Cables extends CablesModule
     }
 
     /**
-     * run raw command, use: export, upload, headless methods instead. otherwise define `command` in options
+     * run raw command, use: export, upload, import methods instead. otherwise define `command` in options
      *
      * @param {import("./src/module.js").ModuleOptions} [options]
      * @returns {Promise<import("./src/module.js").ModuleRunResult>}
      */
     async run(options = {})
     {
-        await super.run(options);
-        const commandParam = this.getModuleOption(CablesModule.MODULE_OPTION_COMMAND);
-        if (commandParam)
+        let cliModule = null;
+        try
         {
-            const command = this.getCommand(commandParam);
-            let cliModule = new command.class(this._cli);
-            return cliModule.run(options);
+            await super.run(options);
+            const commandParam = this.getModuleOption(CablesModule.MODULE_OPTION_COMMAND);
+            if (commandParam)
+            {
+                const command = this.getCommand(commandParam);
+                cliModule = new command.class(this._cli);
+                return await cliModule.run(options);
+            }
         }
+        catch (e)
+        {
+            if (e instanceof UsageError)
+            {
+                if (this._cli)
+                {
+                    if (cliModule)
+                    {
+                        this.log.info(cliModule.getUsageInfo());
+                    }
+                    else
+                    {
+                        this.log.info(this.getUsageInfo());
+                    }
+                }
+            }
+            if (this._cli) throw e;
+            this.log.error(e.message, e.cause ? e.cause : "");
+            return this.getResult(false);
+        }
+
     }
 
     /**
@@ -199,14 +224,15 @@ export class Cables extends CablesModule
 if (runningAsCli)
 {
     const cli = new Cables(runningAsCli);
-    cli.run()
-        .catch((e) =>
+    cli.run().catch((e) =>
+    {
+        const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
+        if (!help)
         {
-            const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
-            if (e instanceof UsageError)
-            {
-                cli.log.info(cli.getUsageInfo());
-            }
-            if (!help) cli.log.error(e.toString());
-        });
+            let message = e.toString();
+            if (e.cause && e.cause.code) message += " " + e.cause.code;
+            cli.log.error(message);
+        }
+
+    });
 }

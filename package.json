@@ -25,12 +25,15 @@
     "author": "undev (https://undev.studio)",
     "homepage": "https://github.com/cables-gl/cables-cli",
     "bugs": {
-        "url": "https://github.com/cables-gl/cables-cli/issues"
+        "url": "https://github.com/cables-gl/cables/issues"
     },
     "keywords": [
         "visual-programming",
         "cables",
-        "export"
+        "export",
+        "import",
+        "upload",
+        "api"
     ],
     "license": "MIT",
     "dependencies": {

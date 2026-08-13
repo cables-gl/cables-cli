@@ -61,23 +61,13 @@ export class CablesHeadless extends CablesModule
      */
     async run(options = {})
     {
-        try
+        await super.run(options);
+        const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
+        if (patchFile)
         {
-            await super.run(options);
-            const patchFile = this.getModuleOption(CablesHeadless.MODULE_OPTION_PATCH_FILE);
-            if (patchFile)
-            {
-                const runner = new CablesHeadlessRunner(patchFile);
-                return runner.run();
-            }
+            const runner = new CablesHeadlessRunner(patchFile);
+            return runner.run();
         }
-        catch (e)
-        {
-            const cause = e.cause?.message || e.cause || "";
-            this.log.error(e.message, cause);
-            return this.getResult(false);
-        }
-
     }
 
 }

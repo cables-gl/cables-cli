@@ -16,7 +16,7 @@ export class HttpError extends Error
             errMessage = "unknown error, maybe try again.";
             break;
         case 404:
-            errMessage = "unknown patch, check patchid.";
+            errMessage = "unknown patch, check patchid and url.";
             break;
         case 422:
             errMessage = "incomplete export, missing ops";
@@ -25,7 +25,7 @@ export class HttpError extends Error
             errMessage = "insufficient rights for patch export, or over quota";
             break;
         case 401:
-            errMessage = "insufficient rights for patch export";
+            errMessage = "insufficient rights for patch export, invalid api key?";
             break;
         case 400:
             errMessage = "no rights to patch, invalid api key";
