@@ -9,7 +9,7 @@ export default () =>
 
     const buildConfig = cablesBuildConfig({
         "mode": "development",
-        "entry": path.resolve("./schwarz/schwarz_city_circle.cables"),
+        "entry": "./schwarz",
         "output": {
             "path": path.resolve("./build"),
         },
