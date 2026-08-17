@@ -9,13 +9,13 @@ export default () =>
 
     const buildConfig = cablesBuildConfig({
         "mode": "production",
-        "entry": "./schwarz",
+        "entry": "./c64",
         "output": {
-            "path": path.resolve("./build"),
+            "path": path.resolve("./c64_build"),
         },
         "options": {
             "minify": false,
-            "combinejs": true,
+            "combinejs": false,
             "index": false,
             "analyze": {
                 "path": "./reports"
