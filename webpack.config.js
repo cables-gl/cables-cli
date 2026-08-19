@@ -9,17 +9,11 @@ export default () =>
 
     const buildConfig = cablesBuildConfig({
         "mode": "production",
-        "entry": "./c64",
+        "entry": "./dino",
         "output": {
-            "path": path.resolve("./c64_build"),
+            "path": path.resolve("./dino_build"),
         },
         "options": {
-            "minify": false,
-            "combinejs": false,
-            "index": false,
-            "analyze": {
-                "path": "./reports"
-            },
             "coreDir": "/Users/stephan/Projects/undev/cables/cables_dev/cables/",
             "devDir": "/Users/stephan/Projects/undev/cables/cables_dev/"
         },
@@ -35,9 +29,7 @@ export default () =>
             // "minify": [new BundleAnalyzerPlugin({ "analyzerMode": "static", "openAnalyzer": false, "reportTitle": "cables minify", "reportFilename": path.join(__dirname, "reports", "report_minify.html") })],
         },
         "overrides": {
-            "core": {
-                "mode": "production"
-            },
+            "core": {},
             "ops": {},
             "assets": {},
             "combine": {},
