@@ -69,6 +69,7 @@ export class CablesImport extends CablesModule
         const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
         await this._createPatchZip(patchDir, zipFile);
         const result = await this._uploadZip(zipFile);
+        fs.unlinkSync(zipFile);
         if (result && result.data?.projectId)
         {
             let url = this._baseUrl.href;
@@ -106,26 +107,25 @@ export class CablesImport extends CablesModule
 
     async _createPatchZip(sourceDir, targetZip)
     {
+        const dirContents = fs.readdirSync(sourceDir, { "withFileTypes": true });
+        let isPatchExport = false;
+        for (let i = 0; i < dirContents.length; i++)
+        {
+            const dirent = dirContents[i];
+            if (!dirent.isDirectory() && dirent.name.endsWith(CablesModule.CABLES_EXPORT_FILE_ENDING))
+            {
+                isPatchExport = true;
+                break;
+            }
+        }
+
+        if (!isPatchExport)
+        {
+            throw new RuntimeError("Directory " + sourceDir + " does not contain a " + CablesModule.CABLES_EXPORT_FILE_ENDING + " file, is this a patch export?");
+        }
+
         return new Promise((resolve, reject) =>
         {
-
-            const dirContents = fs.readdirSync(sourceDir, { "withFileTypes": true });
-            let isPatchExport = false;
-            for (let i = 0; i < dirContents.length; i++)
-            {
-                const dirent = dirContents[i];
-                if (!dirent.isDirectory() && dirent.name.endsWith(CablesModule.CABLES_EXPORT_FILE_ENDING))
-                {
-                    isPatchExport = true;
-                    break;
-                }
-            }
-
-            if (!isPatchExport)
-            {
-                throw new RuntimeError("Directory does not contain a " + CablesModule.CABLES_EXPORT_FILE_ENDING + " file, is this a patch export?");
-            }
-
             const output = fs.createWriteStream(targetZip);
             const archive = archiver("zip", {
                 "zlib": { "level": 0 } // Sets the compression level.
@@ -140,8 +140,7 @@ export class CablesImport extends CablesModule
 
             output.on("error", (err) =>
             {
-                this.log.error("Error during creation of zip", targetZip, err);
-                reject(this.getResult(false));
+                reject(new RuntimeError("Error during creation of zip " + targetZip + ": " + err.message, { "cause": err }));
             });
 
             // good practice to catch warnings (ie stat failures and other non-blocking errors)
@@ -153,23 +152,26 @@ export class CablesImport extends CablesModule
                 }
                 else
                 {
-                    this.log.error(err);
-                    reject(this.getResult(false));
+                    reject(new RuntimeError("Error during creation of zip " + targetZip + ": " + err.message, { "cause": err }));
                 }
             });
 
             // good practice to catch this error explicitly
             archive.on("error", (err) =>
             {
-                this.log.error(err);
-                reject(this.getResult(false));
+                reject(new RuntimeError("Error during creation of zip " + targetZip + ": " + err.message, { "cause": err }));
             });
 
             // pipe archive data to the file
             archive.pipe(output);
 
-            // append files from a sub-directory, putting its contents at the root of archive
-            archive.directory(sourceDir, "");
+            // contents of sourceDir at the root of the archive, without the zip itself if it is written into sourceDir
+            const zipInSource = path.relative(sourceDir, targetZip).split(path.sep).join("/");
+            archive.glob("**", {
+                "cwd": sourceDir,
+                "dot": true,
+                "ignore": [zipInSource]
+            });
 
             // finalize the archive (ie we are done appending files but streams have to finish yet)
             // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
