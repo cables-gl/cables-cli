@@ -394,11 +394,6 @@ export class CablesExport extends CablesModule
         {
             url.searchParams.set("assets", this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT));
         }
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
-        {
-            url.searchParams.set("assets", this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT));
-
-        }
         return url;
     }
 

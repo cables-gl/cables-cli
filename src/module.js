@@ -467,7 +467,16 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 }
                 break;
             case 404:
-                errMessage = "Unknown patch, check patchid: " + this._moduleOptions.patch + " (" + this._moduleOptions.url + "/" + this._moduleOptions.patch + ")";
+                if (this._moduleOptions.patch)
+                {
+                    let patchIds = this._moduleOptions.patch;
+                    if (Array.isArray(patchIds)) patchIds = patchIds.join(", ");
+                    errMessage = "Unknown patch, check patch id: " + patchIds + " on " + this._baseUrl.origin;
+                }
+                else
+                {
+                    errMessage = "Not found: " + this.getCommandName() + " is not available on " + this._baseUrl.origin;
+                }
                 break;
             case 413:
                 errMessage = "Over " + this.getCommandName() + " quota";
