@@ -208,7 +208,7 @@ export class CablesExport extends CablesModule
         if (exportType === "code")
         {
             const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
-            const url = new URL("/api/project/" + patchIds.join(",") + "/export", this._baseUrl);
+            const url = new URL("/api/projects/" + patchIds.join(",") + "/export_code", this._baseUrl);
             const reqOptions = {
                 "method": "GET",
                 "headers": { "apikey": this.getApiKey() },
