@@ -27,7 +27,7 @@
                 "rimraf": "6.0.1"
             },
             "engines": {
-                "node": "20.13.1"
+                "node": "24.22.1"
             }
         },
         "node_modules/@colors/colors": {
