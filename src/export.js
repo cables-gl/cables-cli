@@ -248,6 +248,14 @@ export class CablesExport extends CablesModule
             {
                 throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
             }
+            if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+            {
+                const relativeCwd = path.relative(this._getDestinationDir(), process.cwd());
+                if (!relativeCwd.startsWith("..") && !path.isAbsolute(relativeCwd))
+                {
+                    throw new UsageError("--" + CablesExport.MODULE_OPTION_CLEAN + " would remove the current working directory, use a subfolder as destination");
+                }
+            }
             const url = this._getExportUrl(patchIds[0]);
             const reqOptions = {
                 "method": "GET",
