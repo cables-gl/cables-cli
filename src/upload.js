@@ -43,7 +43,7 @@ export class CablesUpload extends CablesModule
             {
                 "name": CablesUpload.MODULE_OPTION_PATCH_ID,
                 "alias": "p",
-                "description": "Patch-Id of the patch on " + this._baseUrl.hostname,
+                "description": "Id of the patch",
                 "type": String,
                 "typeLabel": "{underline PATCHID}",
                 "required": true,

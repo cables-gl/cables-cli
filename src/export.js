@@ -61,7 +61,7 @@ export class CablesExport extends CablesModule
             {
                 "name": CablesExport.MODULE_OPTION_PATCH_ID,
                 "alias": "p",
-                "description": "Patch-Id of the patch on " + this._baseUrl.hostname,
+                "description": "Id of the patch",
                 "type": String,
                 "typeLabel": "{underline PATCHID[]}",
                 "multiple": true,
@@ -80,7 +80,7 @@ export class CablesExport extends CablesModule
                 "alias": "d",
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
-                "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
+                "typeLabel": "{underline ./" + CablesExport.DEFAULT_DESTINATION + "}",
                 "defaultValue": CablesExport.DEFAULT_DESTINATION
             },
             {
@@ -391,9 +391,13 @@ export class CablesExport extends CablesModule
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
         const res = await fetch(downloadUrl, { "method": "HEAD" });
         this.log.info("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
-        let x = await fetch(downloadUrl, { "method": "GET" });
-        x = await x.arrayBuffer();
-        fs.writeFileSync(tempFile, Buffer.from(x));
+        const response = await fetch(downloadUrl, { "method": "GET" });
+        if (!response.ok)
+        {
+            throw new HttpError("Failed to download export from " + downloadUrl.href + " (" + response.status + ")", response);
+        }
+        const data = await response.arrayBuffer();
+        fs.writeFileSync(tempFile, Buffer.from(data));
         return tempFile;
     }
 }

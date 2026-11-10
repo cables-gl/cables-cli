@@ -193,6 +193,7 @@ if (runningAsCli)
             let message = e.toString();
             if (e.cause && e.cause.code) message += " " + e.cause.code;
             cli.log.error(message);
+            process.exitCode = 1;
         }
 
     });
