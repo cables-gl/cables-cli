@@ -87,6 +87,17 @@ as provided in the individual `index.html` and swap out `ops.js` with this downl
 cables export -p pQpie9 --combinejs false -d "public"
 ```
 
+#### Export Headless (`--type headless`) Example:
+
+To run cables patches in headless-mode on the command like, check the [documentation](https://cables.gl/docs/4_export_embed/dev_embed/export_headless/export_headless) and then run:
+
+```shell
+cables export -p pQpie9 --type headless -d "headlesspatch"
+cd headlesspatch
+npm install
+node run
+```
+
 ### Import
 
 To import a cables patch (e.g. a backup or a patch created in [cables standalone](https://cables.gl/standalone)) run:
