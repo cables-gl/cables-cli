@@ -104,6 +104,7 @@ export class Cables extends CablesModule
      * run raw command, use: export, upload, import methods instead. otherwise define `command` in options
      *
      * @param {import("./src/module.js").ModuleOptions} [options]
+     * @throws {Error}
      * @returns {Promise<import("./src/module.js").ModuleRunResult>}
      */
     async run(options = {})
@@ -137,8 +138,9 @@ export class Cables extends CablesModule
                 }
             }
             if (this._cli) throw e;
-            this.log.error(e.message, e.cause ? e.cause : "");
-            return this.getResult(false);
+            const resultModule = cliModule || this;
+            resultModule.log.error(e.message, e.cause ? e.cause : "");
+            throw Object.assign(e, { "result": resultModule.getResult(false) });
         }
 
     }

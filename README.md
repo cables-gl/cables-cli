@@ -169,9 +169,11 @@ cables
         console.log("Export finished!");
     })
     .catch((err) => {
-        console.log("There was an error exporting your patch :/");
+        console.log("There was an error exporting your patch :/", err.message);
     });
 ```
+
+On failure the promise rejects with the error. `err.result.log` contains everything logged during the run.
 
 ### Arguments/options when using as a module
 
