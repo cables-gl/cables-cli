@@ -25,7 +25,6 @@ import { RuntimeError } from "./runtime_error.js";
  */
 export class CablesImport extends CablesModule
 {
-    static MODULE_OPTION_USE_DEV = "dev";
     static MODULE_OPTION_CONVERT_OPS = "convert";
     static MODULE_OPTION_PATCH_DIR = "dir";
 

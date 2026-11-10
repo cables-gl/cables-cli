@@ -41,6 +41,7 @@ Global options for all the commands below are:
 
 -   `--url` `[URL]` Specify base URL of cables api to use (e.g. for local development)
 -   `--apikey` `[string]` Define apikey on the command line, overriding anything that might be in ~/.cablesrc
+-   `-D`/`--dev` `<true|false>` Use dev.cables.gl instead of cables.gl (`--url` takes precedence)
 -   `--loglevel` `<debug|verbose|info|warn|error>` log level
 -   `-h`/`--help` Show usage info about current command
 

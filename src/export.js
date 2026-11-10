@@ -40,7 +40,6 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_EXTRACT_ZIP = "extract";
     static MODULE_OPTION_JSON_FILENAME = "jsonfilename";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
-    static MODULE_OPTION_USE_DEV = "dev";
     static MODULE_OPTION_ASSET_EXPORT = "assets";
     static MODULE_OPTION_FLAT_EXPORT = "flat";
     static MODULE_OPTION_MINIFY = "minify";
@@ -121,14 +120,6 @@ export class CablesExport extends CablesModule
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
                 "defaultValueBoolean": true
-            },
-            {
-                "name": CablesExport.MODULE_OPTION_USE_DEV,
-                "alias": "D",
-                "description": "Export from " + CablesModule.CABLES_DEV_URL,
-                "type": String,
-                "typeLabel": "<true|{underline false}>",
-                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ASSET_EXPORT,
@@ -365,9 +356,7 @@ export class CablesExport extends CablesModule
     _getExportUrl(patchId)
     {
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-        let baseUrl = this._baseUrl;
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) baseUrl = CablesModule.CABLES_DEV_URL;
-        const url = new URL("/api/project/" + patchId + "/export", baseUrl);
+        const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
         let removeIndexHtml = this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false;

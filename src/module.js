@@ -108,6 +108,14 @@ export class CablesModule
                 "defaultValue": "info"
             },
             {
+                "name": CablesModule.MODULE_OPTION_USE_DEV,
+                "alias": "D",
+                "description": "Use " + CablesModule.CABLES_DEV_URL.hostname + " instead of " + CablesModule.CABLES_URL.hostname,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
+            },
+            {
                 "name": CablesModule.MODULE_OPTION_HELP,
                 "alias": "h",
                 "type": Boolean,
