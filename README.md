@@ -39,10 +39,10 @@ cables export --help
 
 Global options for all the commands below are:
 
-- `--url` `[URL]` Specify base URL of cables api to use (e.g. for local development)
-- `--apikey` `[string]` Define apikey on the command line, overriding anything that might be in ~/.cablesrc
-- `--loglevel` `<debug|verbose|info|warn|error>` log level
-- `-h`/`--help` Show usage info about current command
+-   `--url` `[URL]` Specify base URL of cables api to use (e.g. for local development)
+-   `--apikey` `[string]` Define apikey on the command line, overriding anything that might be in ~/.cablesrc
+-   `--loglevel` `<debug|verbose|info|warn|error>` log level
+-   `-h`/`--help` Show usage info about current command
 
 ### Export
 
@@ -172,6 +172,28 @@ cables
         console.log("There was an error exporting your patch :/");
     });
 ```
+
+### Arguments/options when using as a module
+
+When using cables-cli as a module, you usually pass the options to the call, e.g. `cables.export({...})`.  
+If you run your script from the command line, you can also pass any of the cables-cli arguments
+(e.g. `--apikey`) to it. These override the options set in your code and fill in options your code doesn't set.
+
+This makes it easy to keep e.g. API keys out of your repository:
+
+```javascript
+// export.js
+import { Cables } from "@cables/cables";
+
+const cables = new Cables();
+await cables.export({ patch: "pQpie9", destination: "public" });
+```
+
+```shell
+node export.js --apikey [APIKEY] -d dist
+```
+
+Arguments cables-cli doesn't know are ignored, so your script can still have its own flags.
 
 ## Usage in package.json:
 
