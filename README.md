@@ -49,7 +49,7 @@ Global options for all the commands below are:
 To export and download a cables patch into a specific directory run:
 
 ```shell
-cables export -p [PATCHID] -d [DESTINATION]
+cables export -d [DESTINATION] -p [PATCHID]
 ```
 
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
@@ -62,7 +62,7 @@ https://cables.gl/edit/pQpie9
 Example:
 
 ```shell
-cables --export pQpie9 -d "my-patch"
+cables export -d "my-patch" -p pQpie9
 ```
 
 **IMPORTANT:** Running this command will overwrite everything in the `my-patch`-folder.
@@ -84,7 +84,7 @@ the patches individually (do NOT use `--combinejs`). Then load libs and `cables.
 as provided in the individual `index.html` and swap out `ops.js` with this download.
 
 ```shell
-cables export -p pQpie9 --combinejs false -d "public"
+cables export --type code --combinejs false -d "public" -p pQpie9
 ```
 
 #### Export Headless (`--type headless`) Example:
@@ -92,7 +92,7 @@ cables export -p pQpie9 --combinejs false -d "public"
 To run cables patches in headless-mode on the command like, check the [documentation](https://cables.gl/docs/4_export_embed/dev_embed/export_headless/export_headless) and then run:
 
 ```shell
-cables export -p pQpie9 --type headless -d "headlesspatch"
+cables export --type headless -d "headlesspatch" -p JXIgAA
 cd headlesspatch
 npm install
 node run
@@ -121,13 +121,13 @@ cables import --help
 To upload assets to an existing cables patch run:
 
 ```shell
-cables upload -p pQpie9 --file myfile.txt
+cables upload --file myfile.txt -p pQpie9
 ```
 
 To upload multiple files run:
 
 ```shell
-cables upload -p pQpie9 --file myfile.txt myfile2.json
+cables upload --file myfile.txt myfile2.json -p pQpie9
 ```
 
 **IMPORTANT:** This will update/overwrite existing files with the same filename.
@@ -162,7 +162,7 @@ const cables = new Cables();
 cables
     .export({
         patch: "pQpie9",
-        destination: "patch",
+        destination: "public",
     })
     .then(() => {
         console.log("Export finished!");
