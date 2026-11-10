@@ -76,7 +76,7 @@ cables export --help
 #### Export Code (`--type code`) Example:
 
 If you just need the op-code of one or more patches you created, you can
-use the `--type code` option and provide a comma-seperated list of patch-ids to
+use the `--type code` option and provide a comma-separated list of patch-ids to
 download `ops.js` with all code included.
 
 This is helpful, when you want to add multiple patches to one page. Download
@@ -135,12 +135,12 @@ cables upload --file myfile.txt myfile2.json -p pQpie9
 Additional options to configure your upload are available via:
 
 ```shell
-cables import --help
+cables upload --help
 ```
 
 ## Usage as a module
 
-Install as develoment dependency:
+Install as development dependency:
 
 ```shell
 npm install --save-dev @cables/cables
@@ -150,6 +150,7 @@ Export:
 
 ```javascript
 import { Cables } from "@cables/cables";
+const cables = new Cables();
 await cables.export(options);
 ```
 
@@ -177,8 +178,8 @@ cables
 ```json
 {
     "scripts": {
-        "patchup": "cables -p pQpie9 -d 'public' --index false",
-        "code": "cables -p pQpie9 --type code -d 'public'"
+        "patchup": "cables export -p pQpie9 -d 'public' --index false",
+        "code": "cables export -p pQpie9 --type code -d 'public'"
     }
 }
 ```
