@@ -93,8 +93,7 @@ export class CablesModule
                 "name": CablesModule.MODULE_OPTION_BASE_URL,
                 "description": "Specify base URL of cables api to use (for local development)",
                 "type": String,
-                "typeLabel": "URL",
-                "defaultValue": CablesModule.CABLES_URL.href
+                "typeLabel": "URL"
             },
             {
                 "name": CablesModule.MODULE_OPTION_API_KEY,

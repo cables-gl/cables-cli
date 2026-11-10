@@ -15,7 +15,7 @@ import { Cables } from "../index.js";
 /**
  * @typedef {object} ExportOptionsData
  * @property {string} patch
- * @property {("html"|"patch"|"code")} [type="html"]
+ * @property {("html"|"patch"|"code"|"headless")} [type="html"]
  * @property {string|null} [destination]
  * @property {boolean|null} [index=true]
  * @property {boolean|null} [extract=true]
@@ -73,7 +73,7 @@ export class CablesExport extends CablesModule
                 "alias": "t",
                 "description": "Type of export",
                 "type": String,
-                "typeLabel": "<{underline html}|patch|code>",
+                "typeLabel": "<{underline html}|patch|code|headless>",
                 "defaultValue": "html",
             },
             {

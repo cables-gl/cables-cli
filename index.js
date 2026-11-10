@@ -5,7 +5,6 @@ import fs from "fs";
 import { CablesExport } from "./src/export.js";
 import { CablesImport } from "./src/import.js";
 import { CablesUpload } from "./src/upload.js";
-import { CablesHeadless } from "./src/headless.js";
 import { CablesModule } from "./src/module.js";
 import { UsageError } from "./src/usage_error.js";
 
@@ -33,7 +32,6 @@ export class Cables extends CablesModule
     static COMMAND_NAME_EXPORT = "export";
     static COMMAND_NAME_IMPORT = "import";
     static COMMAND_NAME_UPLOAD = "upload";
-    static COMMAND_NAME_HEADLESS = "headless";
 
     /**
      *
@@ -54,12 +52,6 @@ export class Cables extends CablesModule
             "name": Cables.COMMAND_NAME_UPLOAD,
             "description": "Upload assets to patches on " + CablesModule.CABLES_URL.hostname,
             "class": CablesUpload,
-        },
-        {
-            "name": Cables.COMMAND_NAME_HEADLESS,
-            "description": "Run an exported patch on the command line",
-            "class": CablesHeadless,
-            "visible": false,
         },
     ];
 
@@ -186,18 +178,6 @@ export class Cables extends CablesModule
         return this.run(options);
     }
 
-    /**
-     *
-     * run exported cables patch headless
-     *
-     * @param {import("./src/headless.js").HeadlessModuleOptions} [options]
-     * @returns {Promise<import("./src/headless.js").HeadlessModuleRunResult>}
-     */
-    async headless(options = {})
-    {
-        options.command = Cables.COMMAND_NAME_HEADLESS;
-        return this.run(options);
-    }
 }
 
 if (runningAsCli)
