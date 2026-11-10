@@ -3,6 +3,7 @@ export class HttpError extends Error
     constructor(message, response)
     {
         super(message);
+        this.message = this.stripHtmlRegex(message);
         this.response = response;
     }
 
@@ -16,6 +17,9 @@ export class HttpError extends Error
             break;
         case 404:
             errMessage = "unknown patch, check patchid and url.";
+            break;
+        case 422:
+            errMessage = "incomplete export, missing ops";
             break;
         case 403:
             errMessage = "insufficient rights for patch export, or over quota";
@@ -36,5 +40,9 @@ export class HttpError extends Error
         }
 
         return "Error fetching patch: " + errMessage;
+    }
+
+    stripHtmlRegex(html) {
+        return html.replace(/<[^>]*>/g, '');
     }
 }

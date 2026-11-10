@@ -4,6 +4,7 @@ import fs from "fs";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { UsageError } from "./usage_error.js";
+import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -69,7 +70,7 @@ export class CablesUpload extends CablesModule
      */
     getCommandName()
     {
-        return "upload";
+        return Cables.COMMAND_NAME_UPLOAD;
     }
 
     /**

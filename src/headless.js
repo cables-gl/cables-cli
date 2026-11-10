@@ -1,5 +1,6 @@
 import { CablesModule } from "./module.js";
 import { CablesHeadlessRunner } from "./headless_runner.js";
+import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
@@ -41,7 +42,7 @@ export class CablesHeadless extends CablesModule
      */
     getCommandName()
     {
-        return "headless";
+        return Cables.COMMAND_NAME_HEADLESS;
     }
 
     /**

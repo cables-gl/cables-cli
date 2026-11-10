@@ -4,6 +4,7 @@ import archiver from "archiver";
 import { CablesModule } from "./module.js";
 import { HttpError } from "./http_error.js";
 import { ApiError } from "./api_error.js";
+import { Cables } from "../index.js";
 import { RuntimeError } from "./runtime_error.js";
 
 /**
@@ -84,7 +85,7 @@ export class CablesImport extends CablesModule
      */
     getCommandName()
     {
-        return "import";
+        return Cables.COMMAND_NAME_IMPORT;
     }
 
     /**

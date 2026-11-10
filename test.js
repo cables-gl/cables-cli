@@ -7,7 +7,7 @@ cables.export(
         "destination": "patch",
         "combinejs": false,
         "minify": false,
-        "index": false
+        "index": true,
     }
 ).then((r) =>
 {

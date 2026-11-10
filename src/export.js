@@ -5,14 +5,15 @@ import extract from "extract-zip";
 import { CablesModule } from "./module.js";
 import { UsageError } from "./usage_error.js";
 import { HttpError } from "./http_error.js";
+import { Cables } from "../index.js";
 
 /** @typedef {import("./module.js").ModuleOptions} ModuleOptions */
 /** @typedef {import("./module.js").ModuleRunResult} ModuleRunResult */
-/** @typedef {ModuleOptions & ExportOptionsDaa} ExportModuleOptions */
+/** @typedef {ModuleOptions & ExportOptionsData} ExportModuleOptions */
 /** @typedef {ModuleRunResult} ExportModuleRunResult  */
 
 /**
- * @typedef {object} ExportOptionsDaa
+ * @typedef {object} ExportOptionsData
  * @property {string} patch
  * @property {("html"|"patch"|"code")} [type="html"]
  * @property {string|null} [destination]
@@ -47,6 +48,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
+    static MODULE_OPTION_CLEAN = "clean";
 
     constructor(runningAsCli = false)
     {
@@ -79,7 +81,7 @@ export class CablesExport extends CablesModule
                 "alias": "d",
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
-                "typeLabel": "{underline dir}",
+                "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
                 "defaultValue": CablesExport.DEFAULT_DESTINATION
             },
             {
@@ -182,6 +184,12 @@ export class CablesExport extends CablesModule
                 "type": String,
                 "typeLabel": "<true|{underline false}>",
                 "defaultValueBoolean": false
+            },
+            {
+                "name": CablesExport.MODULE_OPTION_CLEAN,
+                "description": "Remove destination folder before building",
+                "type": Boolean,
+                "defaultValue": false,
             }
         ];
     }
@@ -264,6 +272,15 @@ export class CablesExport extends CablesModule
                 this.log.info("download finished... ", tempFile);
 
                 let finalDir = this._getDestinationDir();
+                if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+                {
+                    this.log.info("removing destination directory", finalDir);
+                    fs.rmSync(finalDir, {
+                        "recursive": true,
+                        "force": true,
+                    });
+                }
+
                 if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
                 if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
                 {
@@ -302,7 +319,7 @@ export class CablesExport extends CablesModule
      */
     getCommandName()
     {
-        return "export";
+        return Cables.COMMAND_NAME_EXPORT;
     }
 
     /**
@@ -362,6 +379,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minify", minifyCode);
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
+
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
