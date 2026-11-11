@@ -93,8 +93,7 @@ export class CablesModule
                 "name": CablesModule.MODULE_OPTION_BASE_URL,
                 "description": "Specify base URL of cables api to use (for local development)",
                 "type": String,
-                "typeLabel": "URL",
-                "defaultValue": CablesModule.CABLES_URL.href
+                "typeLabel": "URL"
             },
             {
                 "name": CablesModule.MODULE_OPTION_API_KEY,
@@ -107,6 +106,14 @@ export class CablesModule
                 "type": String,
                 "typeLabel": "<debug|verbose|{underline info}|warn|error>",
                 "defaultValue": "info"
+            },
+            {
+                "name": CablesModule.MODULE_OPTION_USE_DEV,
+                "alias": "D",
+                "description": "Use " + CablesModule.CABLES_DEV_URL.hostname + " instead of " + CablesModule.CABLES_URL.hostname,
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
             },
             {
                 "name": CablesModule.MODULE_OPTION_HELP,
@@ -187,35 +194,36 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
 
     /**
      *
-     * @param {ModuleOptions} options
+     * @param {ModuleOptions & Object<String, any>} options
      * @throws UsageError
-     * @returns {Promise}
      */
     async initModule(options = {})
     {
         options = this._convertLibraryOptions(options);
         let moduleOptionDefinitions = this._getModuleOptionDefinitions();
-        let commandLineOptions = commandLineArgs(moduleOptionDefinitions, { "stopAtFirstUnknown": !this.getCommandName() });
+        const parsedDefinitions = moduleOptionDefinitions.map((definition) =>
+        {
+            const parsedDefinition = { ...definition };
+            delete parsedDefinition.defaultValue;
+            return parsedDefinition;
+        });
+        let commandLineOptions = commandLineArgs(parsedDefinitions, {
+            "stopAtFirstUnknown": !this.getCommandName(),
+            "partial": !this._cli
+        });
 
+        /** @type {Object<String, any>} */
         const moduleOptions = {};
         moduleOptionDefinitions.forEach((moduleOptionDefinition) =>
         {
             const optionName = moduleOptionDefinition.name;
-            if (options.hasOwnProperty(optionName))
-            {
-                const cliOption = commandLineOptions[optionName];
-                if (cliOption && moduleOptionDefinition.defaultValue !== cliOption)
-                {
-                    moduleOptions[optionName] = commandLineOptions[optionName];
-                }
-                else
-                {
-                    moduleOptions[optionName] = options[optionName];
-                }
-            }
-            else if (commandLineOptions.hasOwnProperty(optionName))
+            if (commandLineOptions.hasOwnProperty(optionName))
             {
                 moduleOptions[optionName] = commandLineOptions[optionName];
+            }
+            else if (options.hasOwnProperty(optionName))
+            {
+                moduleOptions[optionName] = options[optionName];
             }
             else
             {
@@ -280,9 +288,9 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 if (name === "warning" && typeof data === "object" && data.message && data.message.includes("NODE_TLS_REJECT_UNAUTHORIZED"))
                 {
                     this.log.verbose(data.message);
-                    return;
+                    return false;
                 }
-                return originalEmit.apply(process, args);
+                return originalEmit.call(process, name, ...args);
             };
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
@@ -467,7 +475,16 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
                 }
                 break;
             case 404:
-                errMessage = "Unknown patch, check patchid: " + this._moduleOptions.patch + " (" + this._moduleOptions.url + "/" + this._moduleOptions.patch + ")";
+                if (this._moduleOptions.patch)
+                {
+                    let patchIds = this._moduleOptions.patch;
+                    if (Array.isArray(patchIds)) patchIds = patchIds.join(", ");
+                    errMessage = "Unknown patch, check patch id: " + patchIds + " on " + this._baseUrl.origin;
+                }
+                else
+                {
+                    errMessage = "Not found: " + this.getCommandName() + " is not available on " + this._baseUrl.origin;
+                }
                 break;
             case 413:
                 errMessage = "Over " + this.getCommandName() + " quota";

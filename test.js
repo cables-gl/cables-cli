@@ -18,5 +18,5 @@ cables.export(
     console.log("Export finished!");
 }).catch((err) =>
 {
-    console.log("There was an error exporting your patch :/");
+    console.log("There was an error exporting your patch :/", err.message);
 });

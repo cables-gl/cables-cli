@@ -2,6 +2,7 @@
 .idea/
 
 patch/
+public/
 test/
 node_modules/
 /.vscode

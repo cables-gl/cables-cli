@@ -5,7 +5,6 @@ import fs from "fs";
 import { CablesExport } from "./src/export.js";
 import { CablesImport } from "./src/import.js";
 import { CablesUpload } from "./src/upload.js";
-import { CablesHeadless } from "./src/headless.js";
 import { CablesModule } from "./src/module.js";
 import { UsageError } from "./src/usage_error.js";
 import { CablesBuild } from "./src/build.js";
@@ -34,7 +33,6 @@ export class Cables extends CablesModule
     static COMMAND_NAME_EXPORT = "export";
     static COMMAND_NAME_IMPORT = "import";
     static COMMAND_NAME_UPLOAD = "upload";
-    static COMMAND_NAME_HEADLESS = "headless";
     static COMMAND_NAME_BUILD = "build";
 
     /**
@@ -56,12 +54,6 @@ export class Cables extends CablesModule
             "name": Cables.COMMAND_NAME_UPLOAD,
             "description": "Upload assets to patches on " + CablesModule.CABLES_URL.hostname,
             "class": CablesUpload,
-        },
-        {
-            "name": Cables.COMMAND_NAME_HEADLESS,
-            "description": "Run an exported patch on the command line",
-            "class": CablesHeadless,
-            "visible": false,
         },
         {
             "name": Cables.COMMAND_NAME_BUILD,
@@ -120,6 +112,7 @@ export class Cables extends CablesModule
      * run raw command, use: export, upload, import methods instead. otherwise define `command` in options
      *
      * @param {import("./src/module.js").ModuleOptions} [options]
+     * @throws {Error}
      * @returns {Promise<import("./src/module.js").ModuleRunResult>}
      */
     async run(options = {})
@@ -153,8 +146,9 @@ export class Cables extends CablesModule
                 }
             }
             if (this._cli) throw e;
-            this.log.error(e.message, e.cause ? e.cause : "");
-            return this.getResult(false);
+            const resultModule = cliModule || this;
+            resultModule.log.error(e.message, e.cause ? e.cause : "");
+            throw Object.assign(e, { "result": resultModule.getResult(false) });
         }
 
     }
@@ -196,19 +190,6 @@ export class Cables extends CablesModule
 
     /**
      *
-     * run exported cables patch headless
-     *
-     * @param {import("./src/headless.js").HeadlessModuleOptions} [options]
-     * @returns {Promise<import("./src/headless.js").HeadlessModuleRunResult>}
-     */
-    async headless(options = {})
-    {
-        options.command = Cables.COMMAND_NAME_HEADLESS;
-        return this.run(options);
-    }
-
-    /**
-     *
      * build exported cables patch using webpack
      *
      * @param {import("./src/build.js").BuildModuleOptions} [options]
@@ -232,6 +213,7 @@ if (runningAsCli)
             let message = e.toString();
             if (e.cause && e.cause.code) message += " " + e.cause.code;
             cli.log.error(message);
+            process.exitCode = 1;
         }
 
     });

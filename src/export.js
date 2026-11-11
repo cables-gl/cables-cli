@@ -15,7 +15,7 @@ import { Cables } from "../index.js";
 /**
  * @typedef {object} ExportOptionsData
  * @property {string} patch
- * @property {("html"|"patch"|"code")} [type="html"]
+ * @property {("html"|"patch"|"code"|"headless")} [type="html"]
  * @property {string|null} [destination]
  * @property {boolean|null} [index=true]
  * @property {boolean|null} [extract=true]
@@ -40,7 +40,6 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_EXTRACT_ZIP = "extract";
     static MODULE_OPTION_JSON_FILENAME = "jsonfilename";
     static MODULE_OPTION_COMBINE_JS = "combinejs";
-    static MODULE_OPTION_USE_DEV = "dev";
     static MODULE_OPTION_ASSET_EXPORT = "assets";
     static MODULE_OPTION_FLAT_EXPORT = "flat";
     static MODULE_OPTION_MINIFY = "minify";
@@ -62,7 +61,7 @@ export class CablesExport extends CablesModule
             {
                 "name": CablesExport.MODULE_OPTION_PATCH_ID,
                 "alias": "p",
-                "description": "Patch-Id of the patch on " + this._baseUrl.hostname,
+                "description": "Id of the patch",
                 "type": String,
                 "typeLabel": "{underline PATCHID[]}",
                 "multiple": true,
@@ -73,7 +72,7 @@ export class CablesExport extends CablesModule
                 "alias": "t",
                 "description": "Type of export",
                 "type": String,
-                "typeLabel": "<{underline html}|patch|code>",
+                "typeLabel": "<{underline html}|patch|code|headless>",
                 "defaultValue": "html",
             },
             {
@@ -81,7 +80,7 @@ export class CablesExport extends CablesModule
                 "alias": "d",
                 "description": "Folder to download the patch to, can either be absolute or relative",
                 "type": String,
-                "typeLabel": "{underline ./" + CablesModule.DEFAULT_DESTINATION + "}",
+                "typeLabel": "{underline ./" + CablesExport.DEFAULT_DESTINATION + "}",
                 "defaultValue": CablesExport.DEFAULT_DESTINATION
             },
             {
@@ -121,14 +120,6 @@ export class CablesExport extends CablesModule
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
                 "defaultValueBoolean": true
-            },
-            {
-                "name": CablesExport.MODULE_OPTION_USE_DEV,
-                "alias": "D",
-                "description": "Export from " + CablesModule.CABLES_DEV_URL,
-                "type": String,
-                "typeLabel": "<true|{underline false}>",
-                "defaultValueBoolean": false
             },
             {
                 "name": CablesExport.MODULE_OPTION_ASSET_EXPORT,
@@ -208,7 +199,7 @@ export class CablesExport extends CablesModule
         if (exportType === "code")
         {
             const patchIds = this.getModuleOption(CablesExport.MODULE_OPTION_PATCH_ID);
-            const url = new URL("/api/project/" + patchIds.join(",") + "/export", this._baseUrl);
+            const url = new URL("/api/projects/" + patchIds.join(",") + "/export_code", this._baseUrl);
             const reqOptions = {
                 "method": "GET",
                 "headers": { "apikey": this.getApiKey() },
@@ -247,6 +238,14 @@ export class CablesExport extends CablesModule
             if (patchIds.length > 1)
             {
                 throw new UsageError("Export type '" + exportType + "' does not support multiple patch-ids.");
+            }
+            if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+            {
+                const relativeCwd = path.relative(this._getDestinationDir(), process.cwd());
+                if (!relativeCwd.startsWith("..") && !path.isAbsolute(relativeCwd))
+                {
+                    throw new UsageError("--" + CablesExport.MODULE_OPTION_CLEAN + " would remove the current working directory, use a subfolder as destination");
+                }
             }
             const url = this._getExportUrl(patchIds[0]);
             const reqOptions = {
@@ -357,9 +356,7 @@ export class CablesExport extends CablesModule
     _getExportUrl(patchId)
     {
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
-        let baseUrl = this._baseUrl;
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_USE_DEV)) baseUrl = CablesModule.CABLES_DEV_URL;
-        const url = new URL("/api/project/" + patchId + "/export", baseUrl);
+        const url = new URL("/api/project/" + patchId + "/export", this._baseUrl);
         url.searchParams.set("type", exportType);
         url.searchParams.set("combineJS", this.getModuleOption(CablesExport.MODULE_OPTION_COMBINE_JS));
         let removeIndexHtml = this.getModuleOption(CablesExport.MODULE_OPTION_INDEX_HTML) === false;
@@ -386,11 +383,6 @@ export class CablesExport extends CablesModule
         {
             url.searchParams.set("assets", this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT));
         }
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
-        {
-            url.searchParams.set("assets", this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT));
-
-        }
         return url;
     }
 
@@ -399,9 +391,13 @@ export class CablesExport extends CablesModule
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
         const res = await fetch(downloadUrl, { "method": "HEAD" });
         this.log.info("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
-        let x = await fetch(downloadUrl, { "method": "GET" });
-        x = await x.arrayBuffer();
-        fs.writeFileSync(tempFile, Buffer.from(x));
+        const response = await fetch(downloadUrl, { "method": "GET" });
+        if (!response.ok)
+        {
+            throw new HttpError("Failed to download export from " + downloadUrl.href + " (" + response.status + ")", response);
+        }
+        const data = await response.arrayBuffer();
+        fs.writeFileSync(tempFile, Buffer.from(data));
         return tempFile;
     }
 }

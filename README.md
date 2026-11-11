@@ -39,17 +39,18 @@ cables export --help
 
 Global options for all the commands below are:
 
-- `--url` `[URL]` Specify base URL of cables api to use (e.g. for local development)
-- `--apikey` `[string]` Define apikey on the command line, overriding anything that might be in ~/.cablesrc
-- `--loglevel` `<debug|verbose|info|warn|error>` log level
-- `-h`/`--help` Show usage info about current command
+-   `--url` `[URL]` Specify base URL of cables api to use (e.g. for local development)
+-   `--apikey` `[string]` Define apikey on the command line, overriding anything that might be in ~/.cablesrc
+-   `-D`/`--dev` `<true|false>` Use dev.cables.gl instead of cables.gl (`--url` takes precedence)
+-   `--loglevel` `<debug|verbose|info|warn|error>` log level
+-   `-h`/`--help` Show usage info about current command
 
 ### Export
 
 To export and download a cables patch into a specific directory run:
 
 ```shell
-cables export -p [PATCHID] -d [DESTINATION]
+cables export -d [DESTINATION] -p [PATCHID]
 ```
 
 You can find the patch ID by opening your patch in the cables editor – the last part of the URL is the patch ID, e.g.:
@@ -62,7 +63,7 @@ https://cables.gl/edit/pQpie9
 Example:
 
 ```shell
-cables --export pQpie9 -d "my-patch"
+cables export -d "my-patch" -p pQpie9
 ```
 
 **IMPORTANT:** Running this command will overwrite everything in the `my-patch`-folder.
@@ -76,7 +77,7 @@ cables export --help
 #### Export Code (`--type code`) Example:
 
 If you just need the op-code of one or more patches you created, you can
-use the `--type code` option and provide a comma-seperated list of patch-ids to
+use the `--type code` option and provide a comma-separated list of patch-ids to
 download `ops.js` with all code included.
 
 This is helpful, when you want to add multiple patches to one page. Download
@@ -84,7 +85,18 @@ the patches individually (do NOT use `--combinejs`). Then load libs and `cables.
 as provided in the individual `index.html` and swap out `ops.js` with this download.
 
 ```shell
-cables export -p pQpie9 --combinejs false -d "public"
+cables export --type code --combinejs false -d "public" -p pQpie9
+```
+
+#### Export Headless (`--type headless`) Example:
+
+To run cables patches in headless-mode on the command like, check the [documentation](https://cables.gl/docs/4_export_embed/dev_embed/export_headless/export_headless) and then run:
+
+```shell
+cables export --type headless -d "headlesspatch" -p JXIgAA
+cd headlesspatch
+npm install
+node run
 ```
 
 ### Import
@@ -110,13 +122,13 @@ cables import --help
 To upload assets to an existing cables patch run:
 
 ```shell
-cables upload -p pQpie9 --file myfile.txt
+cables upload --file myfile.txt -p pQpie9
 ```
 
 To upload multiple files run:
 
 ```shell
-cables upload -p pQpie9 --file myfile.txt myfile2.json
+cables upload --file myfile.txt myfile2.json -p pQpie9
 ```
 
 **IMPORTANT:** This will update/overwrite existing files with the same filename.
@@ -124,12 +136,12 @@ cables upload -p pQpie9 --file myfile.txt myfile2.json
 Additional options to configure your upload are available via:
 
 ```shell
-cables import --help
+cables upload --help
 ```
 
 ## Usage as a module
 
-Install as develoment dependency:
+Install as development dependency:
 
 ```shell
 npm install --save-dev @cables/cables
@@ -139,6 +151,7 @@ Export:
 
 ```javascript
 import { Cables } from "@cables/cables";
+const cables = new Cables();
 await cables.export(options);
 ```
 
@@ -151,23 +164,47 @@ const cables = new Cables();
 cables
     .export({
         patch: "pQpie9",
-        destination: "patch",
+        destination: "public",
     })
     .then(() => {
         console.log("Export finished!");
     })
     .catch((err) => {
-        console.log("There was an error exporting your patch :/");
+        console.log("There was an error exporting your patch :/", err.message);
     });
 ```
+
+On failure the promise rejects with the error. `err.result.log` contains everything logged during the run.
+
+### Arguments/options when using as a module
+
+When using cables-cli as a module, you usually pass the options to the call, e.g. `cables.export({...})`.  
+If you run your script from the command line, you can also pass any of the cables-cli arguments
+(e.g. `--apikey`) to it. These override the options set in your code and fill in options your code doesn't set.
+
+This makes it easy to keep e.g. API keys out of your repository:
+
+```javascript
+// export.js
+import { Cables } from "@cables/cables";
+
+const cables = new Cables();
+await cables.export({ patch: "pQpie9", destination: "public" });
+```
+
+```shell
+node export.js --apikey [APIKEY] -d dist
+```
+
+Arguments cables-cli doesn't know are ignored, so your script can still have its own flags.
 
 ## Usage in package.json:
 
 ```json
 {
     "scripts": {
-        "patchup": "cables -p pQpie9 -d 'public' --index false",
-        "code": "cables -p pQpie9 --type code -d 'public'"
+        "patchup": "cables export -p pQpie9 -d 'public' --index false",
+        "code": "cables export -p pQpie9 --type code -d 'public'"
     }
 }
 ```
