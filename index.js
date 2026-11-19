@@ -70,6 +70,7 @@ export class Cables extends CablesModule
     constructor(asCli = false)
     {
         super(asCli);
+        this._commandModule = null;
         const commands = Cables.getCommands(true);
         const commandRows = commands.map((command) =>
         {
@@ -115,11 +116,13 @@ export class Cables extends CablesModule
         try
         {
             await super.run(options);
+            if (this.getModuleOption(CablesModule.MODULE_OPTION_VERSION)) return this.getResult();
             const commandParam = this.getModuleOption(CablesModule.MODULE_OPTION_COMMAND);
             if (commandParam)
             {
                 const command = this.getCommand(commandParam);
                 cliModule = new command.class(this._cli);
+                this._commandModule = cliModule;
                 return await cliModule.run(options);
             }
         }
@@ -187,7 +190,12 @@ export class Cables extends CablesModule
 if (runningAsCli)
 {
     const cli = new Cables(runningAsCli);
-    cli.run().catch((e) =>
+    cli.run().then(() =>
+    {
+        const ranModule = cli._commandModule || cli;
+        if (ranModule.getModuleOption(Cables.MODULE_OPTION_HELP) || ranModule.getModuleOption(Cables.MODULE_OPTION_VERSION)) return;
+        cli.log.info("DONE");
+    }).catch((e) =>
     {
         const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
         const noCommand = e instanceof UsageError && !cli.getModuleOption(Cables.MODULE_OPTION_COMMAND);

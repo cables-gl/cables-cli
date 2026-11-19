@@ -60,6 +60,7 @@ export class CablesModule
     static MODULE_OPTION_HELP = "help";
     static MODULE_OPTION_USE_DEV = "dev";
     static MODULE_OPTION_LOGLEVEL = "loglevel";
+    static MODULE_OPTION_VERSION = "version";
 
     /**
      *
@@ -119,6 +120,13 @@ export class CablesModule
             {
                 "name": CablesModule.MODULE_OPTION_HELP,
                 "alias": "h",
+                "type": Boolean,
+                "defaultValue": false
+            },
+            {
+                "name": CablesModule.MODULE_OPTION_VERSION,
+                "alias": "v",
+                "description": "Output version number",
                 "type": Boolean,
                 "defaultValue": false
             },
@@ -357,6 +365,13 @@ export class CablesModule
             };
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
+        if (moduleOptions[CablesModule.MODULE_OPTION_VERSION])
+        {
+            const packageJson = JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url)).toString());
+            this.log.info(packageJson.version);
+            return;
+        }
+
         if (moduleOptions[CablesModule.MODULE_OPTION_COMMAND])
         {
             const command = this.getCommand(moduleOptions[CablesModule.MODULE_OPTION_COMMAND]);
@@ -403,6 +418,16 @@ export class CablesModule
     async run(options = {})
     {
         await this.initModule(options);
+        if (this.getModuleOption(CablesModule.MODULE_OPTION_VERSION) || this.getModuleOption(CablesModule.MODULE_OPTION_HELP)) return this.getResult();
+        return this.runCommand();
+    }
+
+    /**
+     *
+     * @returns {Promise<ModuleRunResult>}
+     */
+    async runCommand()
+    {
         return this.getResult();
     }
 
