@@ -198,14 +198,10 @@ export class CablesExport extends CablesModule
 
     /**
      *
-     * @param {ExportModuleOptions} [options]
      * @returns {Promise<ModuleRunResult>}
      */
-    async run(options = {})
+    async runCommand()
     {
-
-        await super.run(options);
-
         const exportType = this.getModuleOption(CablesExport.MODULE_OPTION_EXPORT_TYPE);
         if (exportType === "code")
         {

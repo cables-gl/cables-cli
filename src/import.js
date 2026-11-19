@@ -57,13 +57,10 @@ export class CablesImport extends CablesModule
 
     /**
      *
-     * @param {ImportModuleOptions} [options]
      * @returns {Promise<ImportModuleRunResult>}
      */
-    async run(options = {})
+    async runCommand()
     {
-
-        await super.run(options);
         const zipFile = "./patch.zip";
         const patchDir = this.getModuleOption(CablesImport.MODULE_OPTION_PATCH_DIR);
         await this._createPatchZip(patchDir, zipFile);

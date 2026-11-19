@@ -93,14 +93,10 @@ export class CablesUpload extends CablesModule
     }
 
     /**
-     * @param {UploadModuleOptions} [options]
      * @returns {Promise<UploadModuleRunResult>}
      */
-    async run(options = {})
+    async runCommand()
     {
-
-        await super.run(options);
-
         const patchId = this.getModuleOption(CablesUpload.MODULE_OPTION_PATCH_ID);
         const newOnly = this.getModuleOption(CablesUpload.MODULE_OPTION_NEW_ONLY);
 
