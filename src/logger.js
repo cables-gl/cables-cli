@@ -217,7 +217,14 @@ export class Logger
         {
         case "uncaught":
         case "error":
-            console.error(...args);
+            if (process.stderr.isTTY && !process.env.NO_COLOR)
+            {
+                console.error(...args.map((arg) => { return typeof arg === "string" ? "\x1b[31m" + arg + "\x1b[0m" : arg; }));
+            }
+            else
+            {
+                console.error(...args);
+            }
             break;
         case "warn":
             console.warn(...args);

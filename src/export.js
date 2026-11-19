@@ -26,7 +26,7 @@ import { Cables } from "../index.js";
  * @property {boolean|null} [flat=false]
  * @property {boolean|null} [minify=true]
  * @property {boolean|null} [sourcemaps=false]
- * @property {boolean|null} [minifyglsl=false]
+ * @property {boolean|null} [minifyglsl=true]
  */
 export class CablesExport extends CablesModule
 {
@@ -65,12 +65,13 @@ export class CablesExport extends CablesModule
                 "type": String,
                 "typeLabel": "{underline PATCHID[]}",
                 "multiple": true,
+                "defaultOption": true,
                 "required": true,
             },
             {
                 "name": CablesExport.MODULE_OPTION_EXPORT_TYPE,
                 "alias": "t",
-                "description": "Type of export",
+                "description": "Type of export (see more options below)",
                 "type": String,
                 "typeLabel": "<{underline html}|patch|code|headless>",
                 "defaultValue": "html",
@@ -85,6 +86,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_INDEX_HTML,
+                "group": "html",
                 "description": "Will include index.html in the export.",
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
@@ -92,6 +94,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_NO_INDEX_HTML,
+                "group": "html",
                 "alias": "i",
                 "description": "Will exclude index.html in the export.",
                 "type": Boolean,
@@ -108,6 +111,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_JSON_FILENAME,
+                "group": "html",
                 "alias": "j",
                 "description": "Define the filename of the patch json file",
                 "type": String,
@@ -115,6 +119,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_COMBINE_JS,
+                "group": "html",
                 "alias": "c",
                 "description": "Combine javascript and json into a single patch.js",
                 "type": String,
@@ -131,6 +136,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_FLAT_EXPORT,
+                "group": "html",
                 "alias": "f",
                 "description": "Put js and assets into same directory as index.html (\"flat export\")",
                 "type": String,
@@ -139,6 +145,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY,
+                "group": "html",
                 "description": "Minify code",
                 "type": String,
                 "typeLabel": "<{underline true}|false>",
@@ -146,6 +153,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_NO_MINIFY,
+                "group": "html",
                 "alias": "m",
                 "description": "Do not minify code",
                 "type": Boolean,
@@ -155,6 +163,7 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_SOURCEMAPS,
+                "group": "html",
                 "alias": "M",
                 "description": "If code is minified, add sourcemaps to the export",
                 "type": String,
@@ -163,14 +172,16 @@ export class CablesExport extends CablesModule
             },
             {
                 "name": CablesExport.MODULE_OPTION_MINIFY_GLSL,
+                "group": ["html", "headless"],
                 "alias": "g",
                 "description": "Minifies shader-code in .frag and .att attachments",
                 "type": String,
-                "typeLabel": "<{underline true}>",
+                "typeLabel": "<{underline true}|false>",
                 "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
+                "group": "patch",
                 "description": "When exporting with type `patch`, also include core and extension ops",
                 "type": String,
                 "typeLabel": "<true|{underline false}>",
@@ -268,7 +279,6 @@ export class CablesExport extends CablesModule
                 }
                 let downloadUrl = new URL(json.urls.downloadUrl);
                 const tempFile = await this._downloadZip(downloadUrl);
-                this.log.info("download finished... ", tempFile);
 
                 let finalDir = this._getDestinationDir();
                 if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
@@ -291,6 +301,7 @@ export class CablesExport extends CablesModule
                 {
                     const finalFilename = path.join(finalDir, path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl))) + ".zip";
                     fs.renameSync(tempFile, finalFilename);
+                    this.log.info("download finished... ", finalFilename);
                 }
             }
             else
@@ -314,11 +325,33 @@ export class CablesExport extends CablesModule
 
     /**
      *
-     * @returns {string}
+     * @returns {String}
      */
     getCommandName()
     {
         return Cables.COMMAND_NAME_EXPORT;
+    }
+
+    /**
+     *
+     * @returns {Object<String, String>}
+     */
+    getOptionGroups()
+    {
+        return {
+            "html": "HTML export options (-t html):",
+            "patch": "Patch export options (-t patch):",
+            "headless": "Headless export options (-t headless):"
+        };
+    }
+
+    /**
+     *
+     * @returns {String}
+     */
+    getCliExample()
+    {
+        return "cables export -p pQpie9";
     }
 
     /**
@@ -375,7 +408,7 @@ export class CablesExport extends CablesModule
         if (this.getModuleOption(CablesExport.MODULE_OPTION_NO_MINIFY)) minifyCode = false;
         url.searchParams.set("minify", minifyCode);
 
-        if (this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL)) url.searchParams.set("minifyGlsl", "true");
+        url.searchParams.set("minifyGlsl", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL) !== false);
 
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
 

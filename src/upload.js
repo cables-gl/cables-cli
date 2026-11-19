@@ -46,6 +46,7 @@ export class CablesUpload extends CablesModule
                 "description": "Id of the patch",
                 "type": String,
                 "typeLabel": "{underline PATCHID}",
+                "defaultOption": true,
                 "required": true,
             },
             {
@@ -71,6 +72,15 @@ export class CablesUpload extends CablesModule
     getCommandName()
     {
         return Cables.COMMAND_NAME_UPLOAD;
+    }
+
+    /**
+     *
+     * @returns {String}
+     */
+    getCliExample()
+    {
+        return "cables upload --file ./asset.png -p PATCHID"
     }
 
     /**

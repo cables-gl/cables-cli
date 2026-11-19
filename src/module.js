@@ -40,6 +40,7 @@ import { Cables } from "../index.js";
  * @property {boolean} [defaultValueBoolean]
  * @property {boolean} [hidden]
  * @property {boolean} [defaultOption]
+ * @property {String|Array<String>} [group]
  */
 
 /**
@@ -147,21 +148,24 @@ export class CablesModule
     getUsageInfo()
     {
         const options = this._getModuleOptionDefinitions();
-        // eslint-disable-next-line no-restricted-syntax
-        const cablesLogo = `                                     >>>  ___:_ _
-       _ _:_______________ _____________ /   |\\\\   _ _______
-          |  _           /\\\\\\\\_           \\\\    |\\\\\\\\.  _)     /\\\\       ______
-    _____ | (/)        _/\\\\\\\\\\\\(_______    /    |\\\\\\\\| /    __/\\\\\\\\\\\\     /     /\\\\
-   /   _/\\\\_      _    /_\\\\\\\\\\\\/_\\\\\\\\\\\\\\\\ _/   /     |\\\\\\\\|/     \\\\_\\\\\\\\\\\\/___ /     /\\\\\\\\\\\\
-  /   /_\\\\\\\\|_     |\\\\     \\\\\\\\(    /\\\\ \\\\   /_    _:\\\\\\\\/__ /\\\\_/       /_\\\\   _/_\\\\\\\\/___
-_/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          /   \\\\          /\\\\
-\\\\           _\\\\   \\\\___     _/             \\\\         /         /     \\\\_       /\\\\\\\\\\\\
- \\\\_________(    _|\\\\\\\\\\\\\\\\     \\\\_ ___________/   _    /_________/       /      /\\\\\\\\\\\\/
-  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\|_____)\\\\\\\\\\\\        |\\\\\\\\\\\\\\\\\\\\/         (/)  /\\\\\\\\\\\\\\\\\\\\\\\\\\\\/                /_\\\\\\\\/
-   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_______:\\\\\\\\.\\\\/______________/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_________________(\\\\\\\\
- _|.._     \\\\\\\\\\\\\\\\\\\\\\\\\\\\)  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\| \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-(_|||_)               \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\|  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/       \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(
- ---|-->>`;
+        const width = process.stdout.columns || 120;
+        const tableOptions = {
+            "maxWidth": width,
+            "padding": { "left": "  ", "right": " " },
+            "columns": [
+                { "name": "option", "noWrap": true },
+                { "name": "description" }
+            ]
+        };
+
+        let cablesLogo = "";
+        cablesLogo += "     ____       ________  ___________             ______      ______\n";
+        cablesLogo += "._(//   /   ___)\\_     /(_\\___      /(___        /     /     /     /\n";
+        cablesLogo += "|     _/___)\\ _  /        _  /          /______)/    _/(___ /     /(_____..___\n";
+        cablesLogo += "|_    \\/      / _         /_/    _/   _//      /    _)     / ____        ||  //\n";
+        cablesLogo += " /          _/  /        /_\\     \\    \\(      /     \\    _/   _ /       _||_/\n";
+        cablesLogo += "/___________)__/        __________\\____________\\______       \\\\/________)diP\n";
+        cablesLogo += "- ------------/________/------------------------------\\_______\\------------- -\n";
 
         const banner = {
             "content": cablesLogo,
@@ -182,14 +186,57 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
             commandOptions = {
                 "header": "Options:",
                 "optionList": localOptions,
+                "tableOptions": tableOptions
             };
         }
-        const globalOptions = {
-            "header": "Global Options:",
-            "optionList": this._globalCliOptions.filter((option) => { return option.name !== CablesModule.MODULE_OPTION_COMMAND; }),
+
+        const optionGroups = this.getOptionGroups();
+        const groupSections = [];
+        Object.keys(optionGroups).forEach((group) =>
+        {
+            const hasOptions = localOptions.some((option) => { return [].concat(option.group || []).includes(group); });
+            if (!hasOptions) return;
+            commandOptions.group = "_none";
+            groupSections.push({
+                "header": optionGroups[group],
+                "optionList": localOptions,
+                "group": group,
+                "tableOptions": tableOptions
+            });
+        });
+
+        let globalOptions = {};
+        let examples = {};
+        examples = {
+                "header": "Example:",
+                "content": this.getCliExample(),
+                "tableOptions": tableOptions
         };
 
-        return commandLineUsage([banner, header, this._commandUsage, commandOptions, globalOptions]);
+        if (this.getCommandName()) {
+            globalOptions = {
+                "header": "Global Options:",
+                "optionList": this._globalCliOptions.filter((option) => { return option.name !== CablesModule.MODULE_OPTION_COMMAND; }),
+                "tableOptions": tableOptions
+            };
+        } else {
+            globalOptions = {
+                "header": "Documentation:",
+                "content": "visit: https://github.com/cables-gl/cables-cli"
+            }
+        }
+
+        let commandUsage = this._commandUsage;
+        if (commandUsage && commandUsage.content) commandUsage = { ...commandUsage, "content": { "data": commandUsage.content, "options": { "maxWidth": width } } };
+
+        const infoTable = [banner, header, examples];
+        if (this.getCommandName()) {
+            infoTable.push(commandOptions, ...groupSections);
+        } else {
+            infoTable.push(commandUsage);
+        };
+        infoTable.push(globalOptions);
+        return commandLineUsage(infoTable);
     }
 
     /**
@@ -205,12 +252,28 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
         {
             const parsedDefinition = { ...definition };
             delete parsedDefinition.defaultValue;
+            delete parsedDefinition.group;
             return parsedDefinition;
         });
-        let commandLineOptions = commandLineArgs(parsedDefinitions, {
-            "stopAtFirstUnknown": !this.getCommandName(),
-            "partial": !this._cli
-        });
+
+        let commandLineOptions = {};
+        if (this._cli && this.getCommandName())
+        {
+            const globalDefinitions = parsedDefinitions.filter((d) => { return this._globalCliOptions.find((o) => { return o.name === d.name; }); });
+            const commandDefinitions = parsedDefinitions.filter((d) => { return d.name !== CablesModule.MODULE_OPTION_COMMAND; });
+            const mainOptions = commandLineArgs(globalDefinitions, { "stopAtFirstUnknown": true });
+            commandLineOptions = commandLineArgs(commandDefinitions, { "argv": mainOptions._unknown || [] });
+            delete mainOptions._unknown;
+            commandLineOptions = { ...mainOptions, ...commandLineOptions };
+        }
+        else
+        {
+            parsedDefinitions.forEach((d) => { if (d.name !== CablesModule.MODULE_OPTION_COMMAND) delete d.defaultOption; });
+            commandLineOptions = commandLineArgs(parsedDefinitions, {
+                "stopAtFirstUnknown": !this.getCommandName(),
+                "partial": !this._cli
+            });
+        }
 
         /** @type {Object<String, any>} */
         const moduleOptions = {};
@@ -368,6 +431,25 @@ _/   /(     \\\\    |_\\\\     \\\\__  /_\\\\\\\\_)    \\\\         (_          
     getCommandName()
     {
         return "";
+    }
+
+    /**
+     * headers for option groups in usage info, options use these keys in `group`
+     *
+     * @returns {Object<String, String>}
+     */
+    getOptionGroups()
+    {
+        return {};
+    }
+
+    /**
+     * @abstract
+     * @returns {String}
+     */
+    getCliExample()
+    {
+        return "cables export -p pQpie9";
     }
 
     /**

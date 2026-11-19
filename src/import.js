@@ -90,6 +90,15 @@ export class CablesImport extends CablesModule
 
     /**
      *
+     * @returns {String}
+     */
+    getCliExample()
+    {
+        return "cables import -d ./patchexport/"
+    }
+
+    /**
+     *
      * @returns {boolean}
      */
     requireApiKey()

@@ -70,15 +70,17 @@ export class Cables extends CablesModule
     constructor(asCli = false)
     {
         super(asCli);
-        let content = "";
-        Cables.getCommands(true).forEach((command, i) =>
+        const commands = Cables.getCommands(true);
+        const commandRows = commands.map((command) =>
         {
-            if (i > 0) content += "\n";
-            content += command.name + "\t" + command.description;
+            return {
+                "name": command.name,
+                "description": command.description
+            };
         });
         this._commandUsage = {
-            "header": "Commands",
-            "content": content,
+            "header": "Commands:",
+            "content": commandRows,
         };
     }
 
@@ -188,13 +190,15 @@ if (runningAsCli)
     cli.run().catch((e) =>
     {
         const help = cli.getModuleOption(Cables.MODULE_OPTION_HELP);
-        if (!help)
+        const noCommand = e instanceof UsageError && !cli.getModuleOption(Cables.MODULE_OPTION_COMMAND);
+        if (help) return;
+        if (!noCommand)
         {
             let message = e.toString();
             if (e.cause && e.cause.code) message += " " + e.cause.code;
             cli.log.error(message);
-            process.exitCode = 1;
         }
+        process.exitCode = 1;
 
     });
 }
