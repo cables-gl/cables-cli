@@ -166,8 +166,8 @@ export class CablesExport extends CablesModule
                 "alias": "g",
                 "description": "Minifies shader-code in .frag and .att attachments",
                 "type": String,
-                "typeLabel": "<true|{underline false}>",
-                "defaultValueBoolean": false
+                "typeLabel": "<{underline true}>",
+                "defaultValueBoolean": true
             },
             {
                 "name": CablesExport.MODULE_OPTION_ALL_OPS,
