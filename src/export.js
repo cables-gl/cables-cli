@@ -27,6 +27,7 @@ import { Cables } from "../index.js";
  * @property {boolean|null} [minify=true]
  * @property {boolean|null} [sourcemaps=false]
  * @property {boolean|null} [minifyglsl=true]
+ * @property {boolean|null} [archive=false]
  */
 export class CablesExport extends CablesModule
 {
@@ -47,6 +48,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
+    static MODULE_OPTION_ARCHIVE = "archive";
     static MODULE_OPTION_CLEAN = "clean";
 
     constructor(runningAsCli = false)
@@ -188,6 +190,14 @@ export class CablesExport extends CablesModule
                 "defaultValueBoolean": false
             },
             {
+                "name": CablesExport.MODULE_OPTION_ARCHIVE,
+                "group": "patch",
+                "description": "When exporting with type `patch`, include all ops, core and libs needed to build the patch.`",
+                "type": String,
+                "typeLabel": "<true|{underline false}>",
+                "defaultValueBoolean": false
+            },
+            {
                 "name": CablesExport.MODULE_OPTION_CLEAN,
                 "description": "Remove destination folder before building",
                 "type": Boolean,
@@ -259,60 +269,67 @@ export class CablesExport extends CablesModule
                 "method": "GET",
                 "headers": { "apikey": this.getApiKey() },
             };
-            this.log.info("requesting export...");
-            this.log.info("downloading from", url.href, "...");
-            const response = await fetch(url, reqOptions);
-            if (response.ok && response.status === 200)
+            if (this._cli && process.stdout.isTTY) this._startSpinner();
+            try
             {
-                const json = await response.json();
-                if (json.log && Array.isArray(json.log))
+                this._logStep("exporting", "requesting export from", url.href, "...");
+                const response = await fetch(url, reqOptions);
+                if (response.ok && response.status === 200)
                 {
-                    const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
-                    relevantEntries.forEach((logEntry) =>
+                    const json = await response.json();
+                    if (json.log && Array.isArray(json.log))
                     {
-                        this.log.info("\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
-                    });
-                }
-                let downloadUrl = new URL(json.urls.downloadUrl);
-                const tempFile = await this._downloadZip(downloadUrl);
+                        const relevantEntries = json.log.filter((logEntry) => { return logEntry.level === "error"; });
+                        relevantEntries.forEach((logEntry) =>
+                        {
+                            this._logStep(null, "\x1b[33m%s\x1b[0m", "[" + logEntry.level + "] " + logEntry.text);
+                        });
+                    }
+                    let downloadUrl = new URL(json.urls.downloadUrl);
+                    const tempFile = await this._downloadZip(downloadUrl);
 
-                let finalDir = this._getDestinationDir();
-                if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
-                {
-                    this.log.info("removing destination directory", finalDir);
-                    fs.rmSync(finalDir, {
-                        "recursive": true,
-                        "force": true,
-                    });
-                }
+                    let finalDir = this._getDestinationDir();
+                    if (this.getModuleOption(CablesExport.MODULE_OPTION_CLEAN))
+                    {
+                        this._logStep("removing", "removing destination directory", finalDir);
+                        await fs.promises.rm(finalDir, {
+                            "recursive": true,
+                            "force": true,
+                        });
+                    }
 
-                if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
-                if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
-                {
-                    this.log.info("extracting to " + finalDir);
-                    await extract(tempFile, { "dir": finalDir });
-                    fs.unlinkSync(tempFile);
+                    if (!fs.existsSync(finalDir)) await fs.promises.mkdir(finalDir, { "recursive": true });
+                    if (this.getModuleOption(CablesExport.MODULE_OPTION_EXTRACT_ZIP))
+                    {
+                        this._logStep("extracting", "extracting to " + finalDir);
+                        await extract(tempFile, { "dir": finalDir });
+                        fs.unlinkSync(tempFile);
+                    }
+                    else
+                    {
+                        const finalFilename = path.join(finalDir, path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl))) + ".zip";
+                        fs.renameSync(tempFile, finalFilename);
+                        this._logStep(null, "download finished... ", finalFilename);
+                    }
                 }
                 else
                 {
-                    const finalFilename = path.join(finalDir, path.basename(json.urls.downloadUrl, path.extname(json.urls.downloadUrl))) + ".zip";
-                    fs.renameSync(tempFile, finalFilename);
-                    this.log.info("download finished... ", finalFilename);
+                    let message = "";
+                    try
+                    {
+                        const json = await response.json();
+                        message = this.getHttpResponseErrorMessage(json, response.status);
+                    }
+                    catch (e)
+                    {
+                        message = "failed to parse error response json: " + e;
+                    }
+                    throw new HttpError(message, response);
                 }
             }
-            else
+            finally
             {
-                let message = "";
-                try
-                {
-                    const json = await response.json();
-                    message = this.getHttpResponseErrorMessage(json, response.status);
-                }
-                catch (e)
-                {
-                    message = "failed to parse error response json: " + e;
-                }
-                throw new HttpError(message, response);
+                this._stopSpinner();
             }
         }
         return this.getResult();
@@ -407,6 +424,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minifyGlsl", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL) !== false);
 
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
+        if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ARCHIVE)) url.searchParams.set("archive", "true");
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
         {
@@ -415,11 +433,50 @@ export class CablesExport extends CablesModule
         return url;
     }
 
+    _startSpinner()
+    {
+        const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+        let frame = 0;
+        this._spinnerLabel = "";
+        this._onSigint = () =>
+        {
+            this._stopSpinner();
+            process.exit(130);
+        };
+        process.once("SIGINT", this._onSigint);
+        process.stdout.write("\x1b[?25l");
+        this._spinner = setInterval(() =>
+        {
+            process.stdout.write("\r\x1b[K" + frames[frame++ % frames.length] + " " + this._spinnerLabel + "...");
+        }, 80);
+    }
+
+    _stopSpinner()
+    {
+        if (!this._spinner) return;
+        clearInterval(this._spinner);
+        this._spinner = null;
+        process.removeListener("SIGINT", this._onSigint);
+        process.stdout.write("\r\x1b[K\x1b[?25h");
+    }
+
+    /**
+     * log a line above the spinner and change the spinner text
+     * @param {String|null} label
+     * @param {...any} args
+     */
+    _logStep(label, ...args)
+    {
+        if (this._spinner) process.stdout.write("\r\x1b[K");
+        if (label) this._spinnerLabel = label;
+        this.log.info(...args);
+    }
+
     async _downloadZip(downloadUrl)
     {
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
         const res = await fetch(downloadUrl, { "method": "HEAD" });
-        this.log.info("size:", Math.round(res.headers.get("content-length") / 1024) + "kb");
+        this._logStep("downloading", "downloading", Math.round(res.headers.get("content-length") / 1024) + "kb from", downloadUrl.href, "...");
         const response = await fetch(downloadUrl, { "method": "GET" });
         if (!response.ok)
         {
