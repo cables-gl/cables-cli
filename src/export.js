@@ -27,7 +27,7 @@ import { Cables } from "../index.js";
  * @property {boolean|null} [minify=true]
  * @property {boolean|null} [sourcemaps=false]
  * @property {boolean|null} [minifyglsl=true]
- * @property {boolean|null} [archive=false]
+ * @property {boolean|null} [buildable=false]
  */
 export class CablesExport extends CablesModule
 {
@@ -48,7 +48,7 @@ export class CablesExport extends CablesModule
     static MODULE_OPTION_SOURCEMAPS = "sourcemaps";
     static MODULE_OPTION_MINIFY_GLSL = "minifyglsl";
     static MODULE_OPTION_ALL_OPS = "allops";
-    static MODULE_OPTION_ARCHIVE = "archive";
+    static MODULE_OPTION_BUILDABLE = "buildable";
     static MODULE_OPTION_CLEAN = "clean";
 
     constructor(runningAsCli = false)
@@ -190,9 +190,9 @@ export class CablesExport extends CablesModule
                 "defaultValueBoolean": false
             },
             {
-                "name": CablesExport.MODULE_OPTION_ARCHIVE,
+                "name": CablesExport.MODULE_OPTION_BUILDABLE,
                 "group": "patch",
-                "description": "When exporting with type `patch`, include all ops, core and libs needed to build the patch.`",
+                "description": "When exporting with type `patch`, include all ops, core and libs needed to build the patch",
                 "type": String,
                 "typeLabel": "<true|{underline false}>",
                 "defaultValueBoolean": false
@@ -424,7 +424,7 @@ export class CablesExport extends CablesModule
         url.searchParams.set("minifyGlsl", this.getModuleOption(CablesExport.MODULE_OPTION_MINIFY_GLSL) !== false);
 
         if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ALL_OPS)) url.searchParams.set("allOps", "true");
-        if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_ARCHIVE)) url.searchParams.set("archive", "true");
+        if (exportType === "patch" && this.getModuleOption(CablesExport.MODULE_OPTION_BUILDABLE)) url.searchParams.set("buildable", "true");
 
         if (this.getModuleOption(CablesExport.MODULE_OPTION_ASSET_EXPORT))
         {
@@ -476,7 +476,9 @@ export class CablesExport extends CablesModule
     {
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
         const res = await fetch(downloadUrl, { "method": "HEAD" });
-        this._logStep("downloading", "downloading", Math.round(res.headers.get("content-length") / 1024) + "kb from", downloadUrl.href, "...");
+        const sizeKb = Math.round(res.headers.get("content-length") / 1024);
+        const size = sizeKb >= 1024 ? (sizeKb / 1024).toFixed(2) + "MB" : sizeKb + "kb";
+        this._logStep("downloading", "downloading", size, "from", downloadUrl.href, "...");
         const response = await fetch(downloadUrl, { "method": "GET" });
         if (!response.ok)
         {
