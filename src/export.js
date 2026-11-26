@@ -475,17 +475,44 @@ export class CablesExport extends CablesModule
     async _downloadZip(downloadUrl)
     {
         const tempFile = path.basename(downloadUrl.href, path.extname(downloadUrl.href)) + ".zip";
-        const res = await fetch(downloadUrl, { "method": "HEAD" });
-        const sizeKb = Math.round(res.headers.get("content-length") / 1024);
-        const size = sizeKb >= 1024 ? (sizeKb / 1024).toFixed(2) + "MB" : sizeKb + "kb";
-        this._logStep("downloading", "downloading", size, "from", downloadUrl.href, "...");
         const response = await fetch(downloadUrl, { "method": "GET" });
         if (!response.ok)
         {
             throw new HttpError("Failed to download export from " + downloadUrl.href + " (" + response.status + ")", response);
         }
-        const data = await response.arrayBuffer();
-        fs.writeFileSync(tempFile, Buffer.from(data));
+        const totalBytes = Number(response.headers.get("content-length"));
+        const sizeKb = Math.round(totalBytes / 1024);
+        let size = "unknown size";
+        if (totalBytes) size = sizeKb >= 1024 ? (sizeKb / 1024).toFixed(2) + "MB" : sizeKb + "kb";
+        this._logStep("downloading", "downloading", size, "from", downloadUrl.href, "...");
+        const reader = response.body.getReader();
+        const chunks = [];
+        const start = Date.now();
+        let loadedBytes = 0;
+        while (true)
+        {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            loadedBytes += value.length;
+
+            const elapsed = (Date.now() - start) / 1000;
+            const loadedKb = loadedBytes / 1024;
+            const loaded = sizeKb >= 1024 ? (loadedKb / 1024).toFixed(2) + "MB" : Math.round(loadedKb) + "kb";
+            if (totalBytes)
+            {
+                const progress = Math.min(loadedBytes / totalBytes, 1);
+                const barWidth = 20;
+                const filled = Math.round(progress * barWidth);
+                const remaining = progress > 0 ? elapsed / progress - elapsed : 0;
+                this._spinnerLabel = "downloading [" + "█".repeat(filled) + "░".repeat(barWidth - filled) + "] " + Math.round(progress * 100) + "% " + loaded + "/" + size + ", " + Math.round(elapsed) + "s, ~" + Math.round(remaining) + "s left";
+            }
+            else
+            {
+                this._spinnerLabel = "downloading " + loaded + ", " + Math.round(elapsed) + "s";
+            }
+        }
+        fs.writeFileSync(tempFile, Buffer.concat(chunks));
         return tempFile;
     }
 }
